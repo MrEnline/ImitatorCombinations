@@ -1,0 +1,43 @@
+﻿<Window x:Class="ImitComb.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ImitComb"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="476.073" Width="1056.867">
+    <Grid Margin="0,0,-8,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25*"/>
+            <RowDefinition Height="64*"/>
+        </Grid.RowDefinitions>
+        <TextBox x:Name="textBoxNameServer" HorizontalAlignment="Left" Height="32" Margin="23,43,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="182"/>
+        <Label x:Name="labelOPCServer1" Content="OPC-Server" HorizontalAlignment="Left" Margin="23,10,0,0" VerticalAlignment="Top" Width="120"/>
+        <ListBox x:Name="listBoxComb" HorizontalAlignment="Left" Height="188" Margin="23,106,0,0" VerticalAlignment="Top" Width="178" Grid.RowSpan="2"/>
+        <Label x:Name="labelCombs" Content="Комбинации" HorizontalAlignment="Left" Margin="23,80,0,0" VerticalAlignment="Top" Width="178"/>
+        <ListBox x:Name="listBoxZDVs" HorizontalAlignment="Left" Height="188" Margin="218,106,0,0" VerticalAlignment="Top" Width="390" Grid.RowSpan="2"/>
+        <Label x:Name="labelCombZDVs" Content="Все задвижки в комбинации" HorizontalAlignment="Left" Margin="218,75,0,0" VerticalAlignment="Top" Width="189"/>
+        <CheckBox x:Name="checkBoxClosing" Content="Закрытие задвижек" HorizontalAlignment="Left" Margin="218,187.391,0,0" VerticalAlignment="Top" Grid.Row="1"/>
+        <TextBox x:Name="textBoxPathCombFile" HorizontalAlignment="Left" Height="32" Margin="218,43,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="461" Text="Введите путь до файла"/>
+        <Label x:Name="labelPathCombFile1" Content="Путь до файла с комбинациями" HorizontalAlignment="Left" Margin="218,12,0,0" VerticalAlignment="Top" Width="189"/>
+        <Button x:Name="buttonImitation" Content="Имитация" HorizontalAlignment="Left" Margin="457,189,0,0" VerticalAlignment="Top" Width="152" Height="33" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1"></Button>
+        <Rectangle Fill="WhiteSmoke" HorizontalAlignment="Left" Height="18" Margin="218,250.391,0,0" Stroke="Black" VerticalAlignment="Top" Width="17" Grid.Row="1"/>
+        <Label x:Name="label1" Content="Состояние участка" HorizontalAlignment="Left" Margin="241,245.391,0,0" VerticalAlignment="Top" Width="116" Height="23" Grid.Row="1"/>
+        <TextBox x:Name="textBoxArea" HorizontalAlignment="Left" Height="32" Margin="695,43,0,0" TextWrapping="Wrap" Text="Префикс участка" VerticalAlignment="Top" Width="120"/>
+        <Label x:Name="labelResultImitation" Content="" HorizontalAlignment="Left" Margin="627,187,0,0" VerticalAlignment="Top" Width="152" FontSize="18" FontWeight="Bold" Grid.Row="1"/>
+        <ListBox x:Name="listBoxSelectZDV" HorizontalAlignment="Left" Height="188" Margin="624,106,0,0" VerticalAlignment="Top" Width="303" Grid.RowSpan="2"/>
+        <Label x:Name="labelZDVs" Content="Задвижки из комбинации" HorizontalAlignment="Left" Margin="624,75,0,0" VerticalAlignment="Top" Width="164"/>
+        <Button x:Name="buttonOpen" Content="Открыта" HorizontalAlignment="Left" Margin="932,106,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.RowSpan="2"/>
+        <Button x:Name="buttonClose" Content="Закрыта" HorizontalAlignment="Left" Margin="932,13.391,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1"/>
+        <Button x:Name="buttonOpening" Content="Открывается" HorizontalAlignment="Left" Margin="932,45.391,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1"/>
+        <Button x:Name="buttonClosing" Content="Закрывается" HorizontalAlignment="Left" Margin="932,77.391,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1"/>
+        <Button x:Name="buttonMiddle" Content="Промежуток" HorizontalAlignment="Left" Margin="932,109.391,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1"/>
+        <Button x:Name="buttonClearFrom" Content="Очистить список" HorizontalAlignment="Left" Margin="932,141.391,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1"/>
+        <CheckBox x:Name="checkBoxClosed" Content="Перекрытие задвижек" HorizontalAlignment="Left" Margin="218,207.391,0,0" VerticalAlignment="Top" Grid.Row="1"/>
+        <CheckBox x:Name="checkBoxOpen" Content="Открыть все задвижки в комбинации" HorizontalAlignment="Left" Margin="218,227.391,0,0" VerticalAlignment="Top" Grid.Row="1"/>
+        <Rectangle x:Name="blinkerBlockWay11" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="18" Margin="218,273.391,0,0" Stroke="Black" VerticalAlignment="Top" Width="17" Grid.Row="1"/>
+        <Label x:Name="label1_Copy" Content="Состояние блокировочного трубопровода Воротынец-2,3" HorizontalAlignment="Left" Margin="241,268.391,0,0" VerticalAlignment="Top" Width="338" Height="23" Grid.Row="1"/>
+        <Button x:Name="buttonAutoCheck" Content="Автопроверка" HorizontalAlignment="Left" Margin="457,230,0,0" VerticalAlignment="Top" Width="152" Height="33" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1"/>
+
+    </Grid>
+</Window>
