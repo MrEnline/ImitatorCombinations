@@ -12,6 +12,8 @@ using ImitComb.domain;
 using ImitComb.domain.Entity;
 using System.Threading;
 using System.IO;
+using ImitComb.presentation;
+using System.Windows.Threading;
 
 namespace ImitComb.data
 {
@@ -38,6 +40,10 @@ namespace ImitComb.data
         private const string ERROR_MESSAGE = "Ошибка";
         private const string SUCCESS_MESSAGE = "Успешно";
         private const string WARNING_MESSAGE = "Введите данные";
+        private const string EXECUTE_AUTO_CHECK = "Выполняется";
+        private const string DONE_AUTO_CHECK = "Операция выполнена";
+        private const string ABORT_AUTO_CHECK = "Операция прервана";
+        private string path = @"./ResultAutoImitations.txt";
         private Dictionary<string, List<String>> dictCombs;
         private Dictionary<string, string> dictTags;
         private Dictionary<string, List<String>> dictErrorCombs;
@@ -61,20 +67,17 @@ namespace ImitComb.data
         private ArrayClass arrayRead;
         private ArrayClass arrayDataChange;
 
-        private SignalState signalState;
-
         private OPCState opcState;
         object value;
         object quality;
         object timeStamp;
 
         private Command command;
-        private int currBlockWay;
-        private string keyCurrentComb;
 
-        private Thread threadTwo;
+        private Thread backThread;
+        private int backThreadId = 0;
 
-        private int TEST_VALUE = 0;
+        private IExeState exeState;
 
         public RepositoryImpl()
         {
@@ -277,6 +280,7 @@ namespace ImitComb.data
             //MessageBox.Show("Imitation");
             WriteValues(valueCommand, opcWrite);
             opcGroups.Remove(GROUP_OPC_WRITE);
+            opcWrite.opcGroup = null;
             return SUCCESS_MESSAGE;
         }
 
@@ -292,7 +296,10 @@ namespace ImitComb.data
                 }
                 catch (Exception)
                 {
+                    
                     MessageBox.Show("Список с сигналами скорее всего пустой");
+                    opcRead.opcGroup = null;
+                    opcWrite.opcGroup = null;
                     return false;
                 }
             }
@@ -337,18 +344,38 @@ namespace ImitComb.data
         private void WriteValues(int valueCommand, OPCSettings opcData)
         {
             //MessageBox.Show(opcData.opcItems.Count.ToString());
-            foreach (OPCItem item in opcData.opcItems)
+            //MessageBox.Show(Thread.CurrentThread.ManagedThreadId.ToString());
+            
+            //OPCItem item1 = opcItems.GetOPCItem((int)arrayWrite.ServerHandles.GetValue(1));
+            //int count = opcData.opcItems.Count;
+            //item1.Write(valueCommand);
+
+            //foreach (OPCItem item in opcItems)
+            //{
+            //    item.Write(valueCommand);
+            //}
+            int count = opcData.opcItems.Count;
+            OPCItems opcItems = opcData.opcItems;
+            for (int i = 1; i <= count; i++)
             {
+                OPCItem item = opcItems.GetOPCItem((int)arrayWrite.ServerHandles.GetValue(i));
                 item.Write(valueCommand);
             }
         }
 
-        public List<SignalState> ReadValues(OPCSettings opcData)
+        public List<SignalState> ReadValues(OPCSettings opcData, ArrayClass arrayClass)
         {
             List<SignalState> listValue = new List<SignalState>();
-            int i = 0;
-            foreach (OPCItem item in opcData.opcItems)
+            //foreach (OPCItem item in opcData.opcItems)
+            //{
+            //    item.Read(1, out value, out quality, out timeStamp);
+            //    listValue.Add(new SignalState(value, quality, timeStamp));
+            //}
+            int count = opcData.opcItems.Count;
+            OPCItems opcItems = opcData.opcItems;
+            for (int i = 1; i <= count; i++)
             {
+                OPCItem item = opcItems.GetOPCItem((int)arrayClass.ServerHandles.GetValue(i));
                 item.Read(1, out value, out quality, out timeStamp);
                 listValue.Add(new SignalState(value, quality, timeStamp));
             }
@@ -371,9 +398,12 @@ namespace ImitComb.data
             FormationArrays(arrayClass, listTags, data);
             
             InitOPC(arrayClass, nameGroup, listTags.Count, opcData);
-            List<SignalState> listValues = ReadValues(opcData);
+            List<SignalState> listValues = ReadValues(opcData, arrayClass);
             if (nameGroup != GROUP_OPC_DATA_CHANGE)
+            {
                 opcGroups.Remove(GROUP_OPC_READ);
+                opcData.opcGroup = null;
+            }
             return listValues;
         }
 
@@ -391,37 +421,74 @@ namespace ImitComb.data
             return listDataChangeTags.Count > 0;
         }
 
-        public void AutoCheck()
+        public void AutoCheck(IExeState exeState)
         {
-            //threadTwo = new Thread(ExecuteAutoCheck);
-            //threadTwo.Start();
-            if (dictCombs.Count == 0 || dictTags.Count == 0) return;
-            foreach (KeyValuePair<string, List<string>> keyValuePair in dictCombs)
+            this.exeState = exeState;
+            if (backThreadId == 0)
+                InitBackThread();
+            else
+                AbortBackThread();
+        }
+
+        private void InitBackThread()
+        {
+            backThread = new Thread(ExecuteAutoCheck);
+            backThread.Start();
+            backThreadId = backThread.ManagedThreadId;
+        }
+
+        private void AbortBackThread()
+        {
+            exeState.GetStateExecute(ABORT_AUTO_CHECK, stopAutoImitation: true);
+            backThread.Abort();
+            backThread.Join();
+            backThread = null;
+            backThreadId = 0;
+            opcRead.opcGroup = null;
+            opcWrite.opcGroup = null;
+            //opcGroups.Remove(GROUP_OPC_READ);
+            //opcGroups.Remove(GROUP_OPC_WRITE);
+            //opcGroups.RemoveAll();
+            //opcGroups.Add(GROUP_OPC_DATA_CHANGE);
+        }
+
+        private void ExecuteAutoCheck()
+        {
+            try
             {
-                int valueTag = 0;
-                keyCurrentComb = keyValuePair.Key;
-                //MessageBox.Show(keyCurrentComb);
-                listAutoCheckZDVs.Clear();
-                foreach (var value in keyValuePair.Value)
+                if (dictCombs.Count == 0 || dictTags.Count == 0) return;
+                foreach (KeyValuePair<string, List<string>> keyValuePair in dictCombs)
                 {
-                    listAutoCheckZDVs.Add(value);
+                    string keyCurrentComb = keyValuePair.Key;
+                    listAutoCheckZDVs.Clear();
+                    foreach (var value in keyValuePair.Value)
+                    {
+                        listAutoCheckZDVs.Add(value);
+                    }
+                    exeState.GetStateExecute(EXECUTE_AUTO_CHECK);
+                    ExecuteStep(command.SetStatusClose(), 6, 1, keyCurrentComb);
+                    foreach (var item in listAutoCheckZDVs)
+                    {
+                        exeState.GetStateExecute(EXECUTE_AUTO_CHECK, keyCurrentComb + "%" + item);
+                        listSelectOneZDV.Clear();
+                        listSelectOneZDV.Add(item);
+                        ExecuteStep(command.SetStatusOpen(), 7, 2, keyCurrentComb, item);
+                        ExecuteStep(command.SetStatusClose(), 7, 1, keyCurrentComb, item);
+                    }
+                    ExecuteStep(command.SetStatusOpen(), 6, 2, keyCurrentComb);
                 }
-                ExecuteStep(command.SetStatusClose(), 6, 1, keyCurrentComb);
-                foreach (var item in listAutoCheckZDVs)
-                {
-                    listSelectOneZDV.Clear();
-                    listSelectOneZDV.Add(item);
-                    ExecuteStep(command.SetStatusOpen(), 7, 2, keyCurrentComb, item);
-                    ExecuteStep(command.SetStatusClose(), 7, 1, keyCurrentComb, item);
-                }
+                OutputErrorData();
+                exeState.GetStateExecute(DONE_AUTO_CHECK);
+                MessageBox.Show(DONE_AUTO_CHECK);
+            } 
+            catch(ThreadAbortException)
+            {
+                
             }
-            OutputErrorData();
-            MessageBox.Show("Операция выполнена");
         }
 
         private void OutputErrorData()
         {
-            string path = @"./ResultAutoImitations.txt";
             using (FileStream fileStream = new FileStream(path, FileMode.OpenOrCreate))
             {
                 using (StreamWriter writer = new StreamWriter(fileStream))
@@ -431,28 +498,35 @@ namespace ImitComb.data
                         foreach (KeyValuePair<string, List<string>> keyValue in dictErrorCombs)
                         {
                             if (keyValue.Value.Count > 0)
-                                writer.WriteLine(keyValue.Key + " :" + keyValue.Value);
+                                writer.WriteLine(keyValue.Key + " :" + GetListErrorZDV(keyValue.Value));
                             else
                                 writer.WriteLine(keyValue.Key);
                         }
-                        writer.WriteLine("Операция выполнена");
+                        writer.WriteLine(DONE_AUTO_CHECK); 
                     }
                 }
             }
+        }
+
+        private string GetListErrorZDV(List<string> errorZDV)
+        {
+            StringBuilder result = new StringBuilder();
+            foreach (var item in errorZDV)
+            {
+                result.Append(item + " ");
+            }
+            return result.ToString().Trim();
         }
 
         private void ExecuteStep(int commandValue, int keyOperation, int currBlockWay, string keyCurrentComb, string nameZDV = "")
         {
             Imitation(commandValue, keyOperation);                     //закроем все задвижки из комбинации
             Thread.Sleep(DELAY);
-            int valueTag = (Int32)ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value;
+            int valueTag = ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value != null ? 
+                                            (Int32)ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value : 0;
             SetDictErrorCombs(currBlockWay, keyCurrentComb, valueTag, nameZDV);
         }
 
-        private void ExecuteAutoCheck()
-        {
-
-        }
 
         private void SetDictErrorCombs(int currBlockWay, string keyCurrentComb, int valueTag, string nameZDV)
         {
@@ -492,7 +566,8 @@ namespace ImitComb.data
             arrayDataChange.ItemValues = ItemValues;
             arrayDataChange.Qualities = Qualities;
             arrayDataChange.TimeStamps = TimeStamps;
-            TEST_VALUE = (Int32)ItemValues.GetValue(1);
+
+            //TEST_VALUE = (Int32)ItemValues.GetValue(1);
             //if ((currBlockWay) != (Int32)ItemValues.GetValue(1) && !String.IsNullOrEmpty(keyCurrentComb))
             //{
             //    if (!dictErrorCombs.ContainsKey(keyCurrentComb))

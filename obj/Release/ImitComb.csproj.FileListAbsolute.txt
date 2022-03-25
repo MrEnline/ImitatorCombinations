@@ -24,3 +24,4 @@ d:\Projects\C#\ImitationCombination\ImitComb\bin\Release\GodSharp.Opc.Da.dll
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Release\GodSharp.Opc.Da.OpcAutomation.dll
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Release\GodSharp.Opc.Da.xml
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Release\GodSharp.Opc.Da.OpcAutomation.xml
+d:\Projects\C#\ImitationCombination\ImitComb\obj\Release\ImitComb.csproj.AssemblyReference.cache

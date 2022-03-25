@@ -126,7 +126,8 @@
     <Compile Include="domain\OpenZDVsUseCase.cs" />
     <Compile Include="domain\ReadCombinationsUseCase.cs" />
     <Compile Include="domain\SubScribeTagsUseCase.cs" />
-    <Compile Include="VievModel.cs" />
+    <Compile Include="presentation\IExeState.cs" />
+    <Compile Include="presentation\VievModel.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

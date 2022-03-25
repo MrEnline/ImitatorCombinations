@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ImitComb.domain.Entity;
+using ImitComb.presentation;
 
 namespace ImitComb.domain
 {
@@ -15,6 +16,6 @@ namespace ImitComb.domain
         List<string> CreateListSelectZDVs(string nameZDV);
         void ClearListSelectZDVs();
         OPCState SubScribeTags();
-        void AutoCheck();
+        void AutoCheck(IExeState exeState);
     }
 }

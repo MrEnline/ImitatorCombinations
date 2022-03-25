@@ -36,7 +36,7 @@ namespace ImitComb
             textBoxArea.KeyDown += TextBoxArea_KeyDown;
             buttonImitation.Click += ButtonImitation_Click;
             buttonImitation.Content = "Имитировать для всей\n       комбинации";
-            buttonClearFrom.Click += ButtonClearFrom_Click;
+            buttonClearForm.Click += ButtonClearForm_Click;
             buttonOpen.Click += ButtonOpen_Click;
             buttonClose.Click += ButtonClose_Click;
             buttonOpening.Click += ButtonOpening_Click;
@@ -113,7 +113,7 @@ namespace ImitComb
             checkBoxClosed.IsChecked = false;
         }
 
-        private void ButtonClearFrom_Click(object sender, RoutedEventArgs e)
+        private void ButtonClearForm_Click(object sender, RoutedEventArgs e)
         {
             viewModel.ClearListSelectZDVs();
         }
