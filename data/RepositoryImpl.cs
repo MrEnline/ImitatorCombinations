@@ -520,7 +520,7 @@ namespace ImitComb.data
 
         private void ExecuteStep(int commandValue, int keyOperation, int currBlockWay, string keyCurrentComb, string nameZDV = "")
         {
-            Imitation(commandValue, keyOperation);                     //закроем все задвижки из комбинации
+            Imitation(commandValue, keyOperation);                     //выполним операции с задвижками из комбинации согласно команде(закрыть, открыть)
             Thread.Sleep(DELAY);
             int valueTag = ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value != null ? 
                                             (Int32)ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value : 0;
