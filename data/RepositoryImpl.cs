@@ -11,6 +11,7 @@ using OPCAutomation;
 using ImitComb.domain;
 using ImitComb.domain.Entity;
 using System.Threading;
+using System.Threading.Tasks;
 using System.IO;
 using ImitComb.presentation;
 using System.Windows.Threading;
@@ -78,6 +79,10 @@ namespace ImitComb.data
         private int backThreadId = 0;
 
         private IExeState exeState;
+
+        private Task task;
+        private CancellationTokenSource cancellation;
+        private CancellationToken token;
 
         public RepositoryImpl()
         {
@@ -424,26 +429,47 @@ namespace ImitComb.data
         public void AutoCheck(IExeState exeState)
         {
             this.exeState = exeState;
-            if (backThreadId == 0)
+            //if (backThreadId == 0)
+            //    InitBackThread();
+            //else
+            //    AbortBackThread();
+            if (this.exeState != null)
+            {
                 InitBackThread();
+                cancellation = new CancellationTokenSource();
+                token = cancellation.Token;
+            }
             else
                 AbortBackThread();
         }
 
-        private void InitBackThread()
+        private async Task InitBackThread()
         {
-            backThread = new Thread(ExecuteAutoCheck);
-            backThread.Start();
-            backThreadId = backThread.ManagedThreadId;
+            //backThread = new Thread(ExecuteAutoCheckBlock);
+            //backThread.Start();
+            //backThreadId = backThread.ManagedThreadId;
+            await Task.Run(() => ExecuteAutoCheckBlock(token));
+            await Task.Run(() => ExecuteAutoCheckBlock(token));
+            //task = new Task(ExecuteAutoCheckBlock, token);
+            ////Task taskContinuation = task.ContinueWith(ExecuteAutoCheckBlock, token);
+            //task.Start();
+            //await task;
+            //task = new Task(ExecuteAutoCheckBlock, token);
+            //await task;
+            MessageBox.Show(DONE_AUTO_CHECK);
         }
 
         private void AbortBackThread()
         {
             exeState.GetStateExecute(ABORT_AUTO_CHECK, stopAutoImitation: true);
-            backThread.Abort();
-            backThread.Join();
-            backThread = null;
-            backThreadId = 0;
+            
+            cancellation.Cancel(); // Отмена выполняемой задачи.
+            task.Wait(); // Для обработки исключения обязательно вызвать Wait!
+            
+            //backThread.Abort();
+            //backThread.Join();
+            //backThread = null;
+            //backThreadId = 0;
             opcRead.opcGroup = null;
             opcWrite.opcGroup = null;
             //opcGroups.Remove(GROUP_OPC_READ);
@@ -452,13 +478,20 @@ namespace ImitComb.data
             //opcGroups.Add(GROUP_OPC_DATA_CHANGE);
         }
 
-        private void ExecuteAutoCheck()
+        private void ExecuteAutoCheckBlock(object arg)
         {
             try
             {
                 if (dictCombs.Count == 0 || dictTags.Count == 0) return;
+
+                // Если задача сразу после старта отменена - возбудить OperationCanceledException.
+                token.ThrowIfCancellationRequested();
+
                 foreach (KeyValuePair<string, List<string>> keyValuePair in dictCombs)
                 {
+                    if (token.IsCancellationRequested) // Задача отменена?
+                        token.ThrowIfCancellationRequested(); // Возбудить OperationCanceledException.
+
                     string keyCurrentComb = keyValuePair.Key;
                     listAutoCheckZDVs.Clear();
                     foreach (var value in keyValuePair.Value)
@@ -469,6 +502,10 @@ namespace ImitComb.data
                     ExecuteStep(command.SetStatusClose(), 6, 1, keyCurrentComb);
                     foreach (var item in listAutoCheckZDVs)
                     {
+
+                        if (token.IsCancellationRequested) // Задача отменена?
+                            token.ThrowIfCancellationRequested(); // Возбудить OperationCanceledException.
+
                         exeState.GetStateExecute(EXECUTE_AUTO_CHECK, keyCurrentComb + "%" + item);
                         listSelectOneZDV.Clear();
                         listSelectOneZDV.Add(item);
@@ -479,7 +516,6 @@ namespace ImitComb.data
                 }
                 OutputErrorData();
                 exeState.GetStateExecute(DONE_AUTO_CHECK);
-                MessageBox.Show(DONE_AUTO_CHECK);
             } 
             catch(ThreadAbortException)
             {
@@ -522,6 +558,7 @@ namespace ImitComb.data
         {
             Imitation(commandValue, keyOperation);                     //выполним операции с задвижками из комбинации согласно команде(закрыть, открыть)
             Thread.Sleep(DELAY);
+            //Task.Delay(DELAY);
             int valueTag = ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value != null ? 
                                             (Int32)ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value : 0;
             SetDictErrorCombs(currBlockWay, keyCurrentComb, valueTag, nameZDV);
