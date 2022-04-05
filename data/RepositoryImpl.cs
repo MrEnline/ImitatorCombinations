@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Text.RegularExpressions;
-using ClosedXML.Excel;
-using OPCAutomation;
+﻿using ClosedXML.Excel;
 using ImitComb.domain;
 using ImitComb.domain.Entity;
-using System.Threading;
-using System.IO;
 using ImitComb.presentation;
-using System.Windows.Threading;
+using OPCAutomation;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows;
 
 namespace ImitComb.data
 {
@@ -24,17 +20,24 @@ namespace ImitComb.data
         private IXLWorksheet worksheetCombs;
         private IXLWorksheet worksheetTags;
         private IXLWorksheet worksheetSubScribe;
+        private IXLWorksheet worksheetSettings;
+
         private const string NAME_COMBS_LIST_EXCEL = "Combinations";
         private const string NAME_TAGS_LIST_EXCEL = "Tags";
         private const string NAME_SUBSCRIBE_LIST_EXCEL = "SubScribe";
+        private const string NAME_SETTINGS_LIST_EXCEL = "Settings";
+
         private const string KEY_SERVER = "Server";
         private const string STATUS = ".Status";
         private const string GROUP_OPC_WRITE = "GroupOPCWrite";
         private const string GROUP_OPC_READ = "GroupOPCREAD";
         private const string GROUP_OPC_DATA_CHANGE = "GroupOPCDATACHANGE";
-        private const int COLUMN_SETTINGS = 4;
+        
+        private const int COLUMN_SETTINGS = 2;
         private const int ROW_SERVER_SETTINGS = 1;
         private const int ROW_PREFIX_SETTINGS = 2;
+        private const int ROW_NAMETU_SETTINGS = 3;
+
         private const int OFFSET_BETWEEN_COMBINATIONS = 2;
         private const int DELAY = 1000;
         private const string ERROR_MESSAGE = "Ошибка";
@@ -53,12 +56,13 @@ namespace ImitComb.data
         private List<string> listDataChangeTags;
         private List<string> listSelectOneZDV;
         private Regex regexCombs;
-        private string pattern = @"[а-яA-Я]+\s+[№:]+\s+\d+";
+        //private string pattern = @"[а-яA-Я]+\s+[№:]+\s+\d+";
+        private string pattern = @"[а-яA-Я]+\s+[№:]+\s+\d+[^.]";
         private string nameServer;
         private string nameArea;
         private OPCServer server;
         private OPCGroups opcGroups;
-        
+
         private OPCSettings opcWrite;
         private OPCSettings opcRead;
         private OPCSettings opcDataChange;
@@ -79,6 +83,13 @@ namespace ImitComb.data
 
         private IExeState exeState;
 
+        private string nameTU;
+        private int numberTU;
+        private int numRowActiveTag = 0;
+        private int prevIndexComb = -1;
+
+        private Dictionary<int, int> setValue;
+
         public RepositoryImpl()
         {
             regexCombs = new Regex(pattern);
@@ -91,11 +102,11 @@ namespace ImitComb.data
             listDataChangeTags = new List<string>();
             listAutoCheckZDVs = new List<string>();
             listSelectOneZDV = new List<string>();
-            
+
             server = new OPCServer();
 
             opcState = new OPCState();
-            
+
             arrayWrite = new ArrayClass();
             arrayRead = new ArrayClass();
             arrayDataChange = new ArrayClass();
@@ -105,6 +116,8 @@ namespace ImitComb.data
             opcDataChange = new OPCSettings();
 
             command = new Command();
+
+            setValue = new Dictionary<int, int>();
 
         }
 
@@ -122,26 +135,37 @@ namespace ImitComb.data
                     worksheetCombs = workbook.Worksheet(NAME_COMBS_LIST_EXCEL);
                     worksheetTags = workbook.Worksheet(NAME_TAGS_LIST_EXCEL);
                     worksheetSubScribe = workbook.Worksheet(NAME_SUBSCRIBE_LIST_EXCEL);
+                    worksheetSettings = workbook.Worksheet(NAME_SETTINGS_LIST_EXCEL);
+                    GetNameTU();
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message);
-                    workbook = null;
+                        MessageBox.Show(ex.Message);
+                        workbook = null;
                 }
             }
             return false;
         }
 
+        private void GetNameTU()
+		{
+            if (worksheetSettings != null)
+                nameTU = worksheetSettings.Cell(ROW_NAMETU_SETTINGS, COLUMN_SETTINGS).Value.ToString();
+            if (!string.IsNullOrEmpty(nameTU))
+                if (Regex.IsMatch(nameTU, @"\d"))
+                    numberTU = Convert.ToInt16(Regex.Match(nameTU, @"\d").Value);
+        }
+
         public string GetNameServer(string nameServer = "")
         {
-            this.nameServer = GetInputData(nameServer, worksheetCombs, ROW_SERVER_SETTINGS);
+            this.nameServer = GetInputData(nameServer, worksheetSettings, ROW_SERVER_SETTINGS);
             return this.nameServer;
         }
 
         public string GetNameArea(string nameArea = "")
         {
-            this.nameArea = GetInputData(nameArea, worksheetCombs, ROW_PREFIX_SETTINGS);
+            this.nameArea = GetInputData(nameArea, worksheetSettings, ROW_PREFIX_SETTINGS);
             if (String.IsNullOrEmpty(this.nameArea)) return WARNING_MESSAGE;
             return this.nameArea;
         }
@@ -154,7 +178,7 @@ namespace ImitComb.data
             }
             else if (worksheet != null && !String.IsNullOrEmpty(worksheet.Cell(row, COLUMN_SETTINGS).Value.ToString()))
             {
-                return worksheetCombs.Cell(row, COLUMN_SETTINGS).Value.ToString();
+                return worksheet.Cell(row, COLUMN_SETTINGS).Value.ToString();
             }
             return "";
         }
@@ -171,10 +195,10 @@ namespace ImitComb.data
                 string keyComb = "";
                 while (count < OFFSET_BETWEEN_COMBINATIONS)
                 {
-                    string valueCell = worksheetCombs.Cell(row, col).Value as String;
-                    count = String.IsNullOrEmpty(valueCell) ? count + 1 : 0;
-                    CreateDictionaryCombinations(valueCell, ref keyComb);
-                    row++;
+                        string valueCell = worksheetCombs.Cell(row, col).Value as String;
+                        count = String.IsNullOrEmpty(valueCell) ? count + 1 : 0;
+                        CreateDictionaryCombinations(valueCell, ref keyComb);
+                        row++;
                 }
             }
             catch (Exception ex)
@@ -224,17 +248,17 @@ namespace ImitComb.data
             switch (keyOperation)
             {
                 case 0:
-                    return listZDVs;
+                        return listZDVs;
                 case 1:
                 case 2:
                 case 3:
                 case 4:
                 case 5:
-                    return listSelectZDVs;
+                        return listSelectZDVs;
                 case 6:
-                    return listAutoCheckZDVs;
+                        return listAutoCheckZDVs;
                 case 7:
-                    return listSelectOneZDV;
+                        return listSelectOneZDV;
             }
             MessageBox.Show("Список с задвижками пустой");
             return null;
@@ -290,17 +314,17 @@ namespace ImitComb.data
             {
                 try
                 {
-                    opcData.opcGroup = opcGroups.Add(nameOPCGroups);
-                    opcData.opcItems = opcData.opcGroup.OPCItems;
-                    opcData.opcItems.AddItems(count, ref arrayClass.ItemIDs, ref arrayClass.ClientHandles, out arrayClass.ServerHandles, out arrayClass.Errors);
+                        opcData.opcGroup = opcGroups.Add(nameOPCGroups);
+                        opcData.opcItems = opcData.opcGroup.OPCItems;
+                        opcData.opcItems.AddItems(count, ref arrayClass.ItemIDs, ref arrayClass.ClientHandles, out arrayClass.ServerHandles, out arrayClass.Errors);
                 }
                 catch (Exception)
                 {
-                    
-                    MessageBox.Show("Список с сигналами скорее всего пустой");
-                    opcRead.opcGroup = null;
-                    opcWrite.opcGroup = null;
-                    return false;
+
+                        MessageBox.Show("Список с сигналами скорее всего пустой");
+                        opcRead.opcGroup = null;
+                        opcWrite.opcGroup = null;
+                        return false;
                 }
             }
             else
@@ -321,16 +345,17 @@ namespace ImitComb.data
             }
         }
 
-        private string GetTag(int i, List<string> currListTags,  string data)
+        private string GetTag(int i, List<string> currListTags, string data)
         {
             switch (data)
             {
                 case "dictionary":
-                    return dictTags[(currListTags[i - 1]).ToLower()] + STATUS;
+                        return dictTags[(currListTags[i - 1]).ToLower()] + STATUS;
                 case "list":
-                    return currListTags[i - 1];
+                        return currListTags[i - 1];
+                default:
+                        return "";
             }
-            return "";
         }
 
         private void InitArrays(ArrayClass arrayClass, int count)
@@ -345,7 +370,7 @@ namespace ImitComb.data
         {
             //MessageBox.Show(opcData.opcItems.Count.ToString());
             //MessageBox.Show(Thread.CurrentThread.ManagedThreadId.ToString());
-            
+
             //OPCItem item1 = opcItems.GetOPCItem((int)arrayWrite.ServerHandles.GetValue(1));
             //int count = opcData.opcItems.Count;
             //item1.Write(valueCommand);
@@ -394,9 +419,9 @@ namespace ImitComb.data
         private List<SignalState> ReadTagsValues(List<string> listTags, ArrayClass arrayClass, OPCSettings opcData, string nameGroup, string data = "dictionary")
         {
             InitArrays(arrayClass, listTags.Count);
-            
+
             FormationArrays(arrayClass, listTags, data);
-            
+
             InitOPC(arrayClass, nameGroup, listTags.Count, opcData);
             List<SignalState> listValues = ReadValues(opcData, arrayClass);
             if (nameGroup != GROUP_OPC_DATA_CHANGE)
@@ -414,8 +439,8 @@ namespace ImitComb.data
                 int i = 1;
                 while (worksheetSubScribe.Cell(i, 1).Value.ToString() != "")
                 {
-                    listDataChangeTags.Add(worksheetSubScribe.Cell(i, 1).Value.ToString());
-                    i++;
+                        listDataChangeTags.Add(worksheetSubScribe.Cell(i, 1).Value.ToString());
+                        i++;
                 }
             }
             return listDataChangeTags.Count > 0;
@@ -439,7 +464,7 @@ namespace ImitComb.data
 
         private void AbortBackThread()
         {
-            exeState.GetStateExecute(ABORT_AUTO_CHECK, stopAutoImitation: true);
+            exeState.GetStateExecute(ABORT_AUTO_CHECK, nameTU, stopAutoImitation: true);
             backThread.Abort();
             backThread.Join();
             backThread = null;
@@ -460,31 +485,64 @@ namespace ImitComb.data
                 foreach (KeyValuePair<string, List<string>> keyValuePair in dictCombs)
                 {
                     string keyCurrentComb = keyValuePair.Key;
+
+                    int indexComb = Convert.ToInt32(Regex.Match(Regex.Matches(keyCurrentComb, @"[а-яA-Я]+\s+[№:]+\s+\d+")[1].Value, @"\d+").Value);
+                    SetCheckValue(indexComb);
+
                     listAutoCheckZDVs.Clear();
                     foreach (var value in keyValuePair.Value)
                     {
                         listAutoCheckZDVs.Add(value);
                     }
-                    exeState.GetStateExecute(EXECUTE_AUTO_CHECK);
-                    ExecuteStep(command.SetStatusClose(), 6, 1, keyCurrentComb);
+                    exeState.GetStateExecute(EXECUTE_AUTO_CHECK, nameTU);
+                    ExecuteStep(command.SetStatusClose(), 6, setValue[1], keyCurrentComb);
                     foreach (var item in listAutoCheckZDVs)
                     {
-                        exeState.GetStateExecute(EXECUTE_AUTO_CHECK, keyCurrentComb + "%" + item);
+                        exeState.GetStateExecute(EXECUTE_AUTO_CHECK, nameTU, keyCurrentComb + "%" + item);
                         listSelectOneZDV.Clear();
                         listSelectOneZDV.Add(item);
-                        ExecuteStep(command.SetStatusOpen(), 7, 2, keyCurrentComb, item);
-                        ExecuteStep(command.SetStatusClose(), 7, 1, keyCurrentComb, item);
+                        ExecuteStep(command.SetStatusOpen(), 7, setValue[2], keyCurrentComb, item);
+                        ExecuteStep(command.SetStatusClose(), 7, setValue[1], keyCurrentComb, item);
                     }
-                    ExecuteStep(command.SetStatusOpen(), 6, 2, keyCurrentComb);
+                    ExecuteStep(command.SetStatusOpen(), 6, setValue[2], keyCurrentComb);
                 }
                 OutputErrorData();
-                exeState.GetStateExecute(DONE_AUTO_CHECK);
+                exeState.GetStateExecute(DONE_AUTO_CHECK, nameTU);
                 MessageBox.Show(DONE_AUTO_CHECK);
-            } 
-            catch(ThreadAbortException)
-            {
-                
             }
+            catch (ThreadAbortException)
+            {}
+        }
+
+        //установить значения с которыми будут проверяться комбинации
+        private void SetCheckValue(int indexComb)
+		{
+            if (prevIndexComb == indexComb && setValue.Count > 0)
+                return;
+            setValue.Clear();
+            switch (indexComb)
+			{
+                case 4:
+                    setValue.Add(1, 0);
+                    setValue.Add(2, 1);
+                    numRowActiveTag = 1;
+                    break;
+                case 2010:
+                    setValue.Add(1, 1);
+                    setValue.Add(2, 2);
+                    numRowActiveTag = 0;
+                    break;
+            }
+            prevIndexComb = indexComb;
+		}
+
+        private void ExecuteStep(int commandValue, int keyOperation, int currValueTag, string keyCurrentComb, string nameZDV = "")
+        {
+            Imitation(commandValue, keyOperation);                     //выполним операции с задвижками из комбинации согласно команде(закрыть, открыть)
+            Thread.Sleep(DELAY);
+            int valueTag = ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[numRowActiveTag].Value != null ?
+                                            (Int32)ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[numRowActiveTag].Value : 0;
+            SetDictErrorCombs(currValueTag, keyCurrentComb, valueTag, nameZDV);
         }
 
         private void OutputErrorData()
@@ -493,17 +551,17 @@ namespace ImitComb.data
             {
                 using (StreamWriter writer = new StreamWriter(fileStream))
                 {
-                    if (dictErrorCombs.Count != 0)
-                    {
-                        foreach (KeyValuePair<string, List<string>> keyValue in dictErrorCombs)
+                        if (dictErrorCombs.Count != 0)
                         {
-                            if (keyValue.Value.Count > 0)
-                                writer.WriteLine(keyValue.Key + " :" + GetListErrorZDV(keyValue.Value));
-                            else
-                                writer.WriteLine(keyValue.Key);
+                            foreach (KeyValuePair<string, List<string>> keyValue in dictErrorCombs)
+                            {
+                                    if (keyValue.Value.Count > 0)
+                                        writer.WriteLine(keyValue.Key + " :" + GetListErrorZDV(keyValue.Value));
+                                    else
+                                        writer.WriteLine(keyValue.Key);
+                            }
+                            writer.WriteLine(DONE_AUTO_CHECK);
                         }
-                        writer.WriteLine(DONE_AUTO_CHECK); 
-                    }
                 }
             }
         }
@@ -518,16 +576,6 @@ namespace ImitComb.data
             return result.ToString().Trim();
         }
 
-        private void ExecuteStep(int commandValue, int keyOperation, int currBlockWay, string keyCurrentComb, string nameZDV = "")
-        {
-            Imitation(commandValue, keyOperation);                     //выполним операции с задвижками из комбинации согласно команде(закрыть, открыть)
-            Thread.Sleep(DELAY);
-            int valueTag = ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value != null ? 
-                                            (Int32)ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value : 0;
-            SetDictErrorCombs(currBlockWay, keyCurrentComb, valueTag, nameZDV);
-        }
-
-
         private void SetDictErrorCombs(int currBlockWay, string keyCurrentComb, int valueTag, string nameZDV)
         {
             //if (currBlockWay != (Int32)arrayDataChange.ItemValues.GetValue(valueTag))
@@ -539,14 +587,14 @@ namespace ImitComb.data
             {
                 if (!dictErrorCombs.ContainsKey(keyCurrentComb))
                 {
-                    dictErrorCombs.Add(keyCurrentComb, new List<string>());
-                    if (nameZDV != "")
-                        dictErrorCombs[keyCurrentComb].Add(nameZDV);
+                        dictErrorCombs.Add(keyCurrentComb, new List<string>());
+                        if (nameZDV != "")
+                            dictErrorCombs[keyCurrentComb].Add(nameZDV);
                 }
                 else
                 {
-                    if (!dictErrorCombs[keyCurrentComb].Contains(nameZDV))
-                        dictErrorCombs[keyCurrentComb].Add(nameZDV);
+                        if (!dictErrorCombs[keyCurrentComb].Contains(nameZDV))
+                            dictErrorCombs[keyCurrentComb].Add(nameZDV);
                 }
             }
         }
@@ -576,6 +624,5 @@ namespace ImitComb.data
             //        dictErrorCombs[keyCurrentComb].Add(listSelectOneZDV[0]);
             //}
         }
-
     }
 }

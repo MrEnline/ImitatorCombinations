@@ -9,7 +9,7 @@ using ImitComb.data;
 using ImitComb.domain.Entity;
 using ImitComb.presentation;
 using System.Windows.Media;
-using System.Windows.Threading;
+using System.Text.RegularExpressions;
 
 namespace ImitComb
 {
@@ -33,7 +33,10 @@ namespace ImitComb
         private Label labelStateAutoImitation;
         private Label labelCombAutoImitation;
         private Label labelZDVAutoImitation;
-        private Button buttonAutoCheck;
+        private Button buttonAutoCheckAG2;
+        private Button buttonAutoCheckAG3;
+        private Button buttonAutoCheckCurrent;
+        private Button buttonAutoCheckBlock;
         private Button buttonImitation;
         private Button buttonOpen;
         private Button buttonClose;
@@ -77,7 +80,8 @@ namespace ImitComb
             labelStateAutoImitation = mainWindow.labelStateAutoImitation;
             labelCombAutoImitation = mainWindow.labelCombAutoImitation;
             labelZDVAutoImitation = mainWindow.labelZDVAutoImitation;
-            buttonAutoCheck = mainWindow.buttonAutoCheck;
+            buttonAutoCheckAG2 = mainWindow.buttonAutoCheckAG2;
+            buttonAutoCheckAG3 = mainWindow.buttonAutoCheckAG3;
             buttonImitation = mainWindow.buttonImitation;
             buttonOpen = mainWindow.buttonOpen;
             buttonClose = mainWindow.buttonClose;
@@ -284,18 +288,21 @@ namespace ImitComb
             }
         }
 
-        public void GetStateExecute(string state, string combination = null, bool stopAutoImitation = false)
+        public void GetStateExecute(string state, string nameTU, string combination = null, bool stopAutoImitation = false)
         {
             this.stopAutoImitation = stopAutoImitation;
+            
+            if (!WorkWithButtons(nameTU)) return;
+            
             mainWindow.Dispatcher.Invoke(() =>
             {
                 if (stopAutoImitation)
                 {
-                    buttonAutoCheck.Content = "Автопроверка";
+                    buttonAutoCheckCurrent.Content = "Автопроверка " + nameTU;
                 }
                 else
                 {
-                    buttonAutoCheck.Content = "Остановить\nавтопроверку";
+                    buttonAutoCheckCurrent.Content = "Остановить\nавтопроверку " + nameTU;
                 }
                 labelStateAutoImitation.Content = state;
                 if (!String.IsNullOrEmpty(combination))
@@ -316,6 +323,29 @@ namespace ImitComb
             
         }
 
+        private bool WorkWithButtons(string nameTU)
+		{
+            if (!String.IsNullOrEmpty(nameTU))
+            {
+                int numberTU = Convert.ToInt16(Regex.Match(nameTU, @"\d").Value);
+                switch (numberTU)
+                {
+                    case 2:
+                        SetWorkButtons(buttonAutoCheckAG2, buttonAutoCheckAG3);
+                        return true;
+                    case 3:
+                        SetWorkButtons(buttonAutoCheckAG3, buttonAutoCheckAG2);
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private void SetWorkButtons(Button buttonCurrent, Button buttonBlock)
+		{
+            buttonAutoCheckCurrent = buttonCurrent;
+            buttonAutoCheckBlock = buttonBlock;
+        }
 
         private void BlockElementsForm()
         {
@@ -330,6 +360,7 @@ namespace ImitComb
             buttonClosing.IsEnabled = false;
             buttonMiddle.IsEnabled = false;
             buttonClearForm.IsEnabled = false;
+            buttonAutoCheckBlock.IsEnabled = false;
     }
 
         private void UnBlockElementsForm()
@@ -345,6 +376,7 @@ namespace ImitComb
             buttonClosing.IsEnabled = true;
             buttonMiddle.IsEnabled = true;
             buttonClearForm.IsEnabled = true;
+            buttonAutoCheckBlock.IsEnabled = true;
         }
     }
 }

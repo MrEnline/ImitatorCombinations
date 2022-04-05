@@ -8,6 +8,6 @@ namespace ImitComb.presentation
 {
     interface IExeState
     {
-        void GetStateExecute(string state, string combination = "", bool stopAutoImitation = false);
+        void GetStateExecute(string state, string nameTU, string combination = "", bool stopAutoImitation = false);
     }
 }
