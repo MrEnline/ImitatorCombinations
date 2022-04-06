@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImitComb"
         mc:Ignorable="d"
-        Title="Комбинатор" Height="577.468" Width="1068.455">
-    <Grid Margin="0,0,-8,-4">
+        Title="Комбинатор" Height="634.442" Width="1068.455">
+    <Grid Margin="0,0,-8,-3" Height="606" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="1068">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="24*"/>
             <ColumnDefinition Width="65*"/>
@@ -21,33 +21,35 @@
         <Label x:Name="labelCombs" Content="Комбинации" HorizontalAlignment="Left" Margin="23,80,0,0" VerticalAlignment="Top" Width="178"/>
         <ListBox x:Name="listBoxZDVs" HorizontalAlignment="Left" Height="188" Margin="218,106,0,0" VerticalAlignment="Top" Width="390" Grid.RowSpan="2" Grid.ColumnSpan="2"/>
         <Label x:Name="labelCombZDVs" Content="Все задвижки в комбинации" HorizontalAlignment="Left" Margin="218,75,0,0" VerticalAlignment="Top" Width="189" Grid.ColumnSpan="2"/>
-        <CheckBox x:Name="checkBoxClosing" Content="Закрытие задвижек" HorizontalAlignment="Left" Margin="218,159,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.ColumnSpan="2"/>
         <TextBox x:Name="textBoxPathCombFile" HorizontalAlignment="Left" Height="32" Margin="218,43,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="461" Text="Введите путь до файла" Grid.ColumnSpan="2"/>
         <Label x:Name="labelPathCombFile1" Content="Путь до файла с комбинациями" HorizontalAlignment="Left" Margin="218,12,0,0" VerticalAlignment="Top" Width="189" Grid.ColumnSpan="2"/>
-        <Button x:Name="buttonImitation" Content="Имитация" HorizontalAlignment="Left" Margin="169,155,0,0" VerticalAlignment="Top" Width="152" Height="33" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1" Grid.Column="1"></Button>
-        <Rectangle Fill="WhiteSmoke" HorizontalAlignment="Left" Height="18" Margin="218,222,0,0" Stroke="Black" VerticalAlignment="Top" Width="17" Grid.Row="1"/>
-        <Label x:Name="labelStateTU" Content="Состояние участка" HorizontalAlignment="Left" Margin="241,217,0,0" VerticalAlignment="Top" Width="116" Height="23" Grid.Row="1" Grid.ColumnSpan="2"/>
         <TextBox x:Name="textBoxArea" HorizontalAlignment="Left" Height="32" Margin="407.369,43,0,0" TextWrapping="Wrap" Text="Префикс участка" VerticalAlignment="Top" Width="120" Grid.Column="1"/>
-        <Label x:Name="labelResultImitation" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,157,0,0" VerticalAlignment="Top" Width="254" FontSize="18" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
         <ListBox x:Name="listBoxSelectZDV" HorizontalAlignment="Left" Height="188" Margin="336.369,106,0,0" VerticalAlignment="Top" Width="303" Grid.RowSpan="2" Grid.Column="1"/>
         <Label x:Name="labelZDVs" Content="Задвижки из комбинации" HorizontalAlignment="Left" Margin="336.369,75,0,0" VerticalAlignment="Top" Width="164" Grid.Column="1"/>
         <Button x:Name="buttonOpen" Content="Открыта" HorizontalAlignment="Left" Margin="644.369,106,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Column="1"/>
-        <Button x:Name="buttonClose" Content="Закрыта" HorizontalAlignment="Left" Margin="644.369,4,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
-        <Button x:Name="buttonOpening" Content="Открывается" HorizontalAlignment="Left" Margin="644.369,36,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
-        <Button x:Name="buttonClosing" Content="Закрывается" HorizontalAlignment="Left" Margin="644.369,68,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
-        <Button x:Name="buttonMiddle" Content="Промежуток" HorizontalAlignment="Left" Margin="644.369,100,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
-        <Button x:Name="buttonClearForm" Content="Очистить список" HorizontalAlignment="Left" Margin="644.369,131,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
-        <CheckBox x:Name="checkBoxClosed" Content="Перекрытие задвижек" HorizontalAlignment="Left" Margin="218,179,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.ColumnSpan="2"/>
-        <CheckBox x:Name="checkBoxOpen" Content="Открыть все задвижки в комбинации" HorizontalAlignment="Left" Margin="218,199,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.ColumnSpan="2"/>
-        <Rectangle x:Name="blinkerBlockWay11" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="18" Margin="218,310,0,0" Stroke="Black" VerticalAlignment="Top" Width="17" Grid.Row="1"/>
-        <Label x:Name="labelStateBlockPipe" BorderBrush="Black" BorderThickness="1px" Content="Состояние блокировочного трубопровода Воротынец-2,3" HorizontalAlignment="Left" Margin="241,304,0,56" Width="338" Grid.Row="1" Grid.ColumnSpan="2"/>
-        <Button x:Name="buttonAutoCheckAG2" Content="Автопроверка АГ2" HorizontalAlignment="Left" Margin="169,192,0,0" VerticalAlignment="Top" Width="152" Height="33" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
-        <Label x:Name="labelStateAutoImitation" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,196,0,0" VerticalAlignment="Top" Width="254" FontSize="18" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
-        <Label x:Name="labelCombAutoImitation" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,235,0,0" VerticalAlignment="Top" Width="403" FontSize="14" FontWeight="Bold" Grid.Row="1" Height="32" Grid.Column="1"/>
-        <Label x:Name="labelZDVAutoImitation" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,270,0,0" VerticalAlignment="Top" Width="403" FontSize="14" FontWeight="Bold" Grid.Row="1" Height="32" Grid.Column="1"/>
-        <Button x:Name="buttonAutoCheckAG3" Content="Автопроверка АГ3" HorizontalAlignment="Left" Margin="169,230,0,0" VerticalAlignment="Top" Width="152" Height="33" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
-        <Rectangle x:Name="blinkerAlarm" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="18" Margin="218,351,0,0" Stroke="Black" VerticalAlignment="Top" Width="17" Grid.Row="1"/>
-        <Label x:Name="labelStateProtection" BorderBrush="Black" BorderThickness="1px" Content="Состояние защиты" HorizontalAlignment="Left" Margin="241,345,0,0" VerticalAlignment="Top" Width="338" Height="33" Grid.Row="1" Grid.ColumnSpan="2"/>
-        <Button x:Name="buttonFullAutoCheck" Content="Полная автопроверка" HorizontalAlignment="Left" Margin="169,268,0,0" VerticalAlignment="Top" Width="152" Height="33" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="buttonClose" Content="Закрыта" HorizontalAlignment="Left" Margin="644,137,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Column="1" Grid.RowSpan="2"/>
+        <Button x:Name="buttonOpening" Content="Открывается" HorizontalAlignment="Left" Margin="644,14,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="buttonClosing" Content="Закрывается" HorizontalAlignment="Left" Margin="644,45,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="buttonMiddle" Content="Промежуток" HorizontalAlignment="Left" Margin="644,76,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="buttonClearForm" Content="Очистить список" HorizontalAlignment="Left" Margin="644,108,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
+        <CheckBox x:Name="checkBoxClosing" Content="Закрытие задвижек" HorizontalAlignment="Left" Margin="218,148,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Button x:Name="buttonImitation" Content="Имитация" HorizontalAlignment="Left" Margin="169,144,0,0" VerticalAlignment="Top" Width="152" Height="33" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
+        <Label x:Name="labelResultImitation" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,146,0,0" VerticalAlignment="Top" Width="254" FontSize="18" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
+        <CheckBox x:Name="checkBoxClosed" Content="Перекрытие задвижек" HorizontalAlignment="Left" Margin="218,168,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <CheckBox x:Name="checkBoxOpen" Content="Открыть все задвижки в комбинации" HorizontalAlignment="Left" Margin="218,188,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Label x:Name="labelStateAutoImitation" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,185,0,0" VerticalAlignment="Top" Width="254" FontSize="18" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
+        <Label x:Name="labelCombAutoImitation" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,224,0,0" VerticalAlignment="Top" Width="403" FontSize="14" FontWeight="Bold" Grid.Row="1" Height="32" Grid.Column="1"/>
+        <Label x:Name="labelZDVAutoImitation" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,259,0,0" VerticalAlignment="Top" Width="403" FontSize="14" FontWeight="Bold" Grid.Row="1" Height="32" Grid.Column="1"/>
+        <Rectangle x:Name="blinkerBlockWay" Fill="#FFF4F4F5" Height="18" Margin="218,309,53,0" Stroke="Black" VerticalAlignment="Top" Grid.Row="1"/>
+        <Label x:Name="labelStateBlockPipe" BorderBrush="Black" BorderThickness="1px" Content="Состояние блокировочного трубопровода" HorizontalAlignment="Left" Margin="241,302,0,101" Width="367" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Button x:Name="buttonAutoCheck" Content="Автопроверка" HorizontalAlignment="Left" Margin="169,187,0,0" VerticalAlignment="Top" Width="152" Height="33" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
+        <Rectangle x:Name="blinkerAlarm" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="18" Margin="218,231,0,0" Stroke="Black" VerticalAlignment="Top" Width="17" Grid.Row="1"/>
+        <Label x:Name="labelStateProtection" BorderBrush="Black" BorderThickness="1px" Content="Состояние защиты" HorizontalAlignment="Left" Margin="241,225,0,0" VerticalAlignment="Top" Width="367" Height="33" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Rectangle x:Name="blinkerCutOff" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="18" Margin="218,270,0,0" Stroke="Black" VerticalAlignment="Top" Width="17" Grid.Row="1"/>
+        <Label x:Name="labelStateCutOff" BorderBrush="Black" BorderThickness="1px" Content="Отсечение станции" HorizontalAlignment="Left" Margin="241,264,0,0" VerticalAlignment="Top" Width="367" Height="33" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Rectangle x:Name="blinkerFlowPath" Fill="#FFF4F4F5" Height="18" Margin="218,347,53,0" Stroke="Black" VerticalAlignment="Top" Grid.Row="1"/>
+        <Label x:Name="labelStateFlowPath" BorderBrush="Black" BorderThickness="1px" Content="Путь течения" HorizontalAlignment="Left" Margin="241,340,0,63" Width="367" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Rectangle x:Name="blinkerLooping" Fill="#FFF4F4F5" Height="18" Margin="218,391,53,0" Stroke="Black" VerticalAlignment="Top" Grid.Row="1"/>
+        <Label x:Name="labelStateLooping" BorderBrush="Black" BorderThickness="1px" Content="Луппинг" HorizontalAlignment="Left" Margin="241,384,0,19" Width="367" Grid.Row="1" Grid.ColumnSpan="2"/>
     </Grid>
 </Window>

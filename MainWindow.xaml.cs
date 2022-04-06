@@ -42,8 +42,7 @@ namespace ImitComb
             buttonOpening.Click += ButtonOpening_Click;
             buttonClosing.Click += ButtonClosing_Click;
             buttonMiddle.Click += ButtonMiddle_Click;
-            buttonAutoCheckAG2.Click += ButtonAutoCheck_Click;
-            buttonAutoCheckAG3.Click += ButtonAutoCheck_Click;
+            buttonAutoCheck.Click += ButtonAutoCheck_Click;
         }
 
         private void ListBoxComb_SelectionChanged(object sender, SelectionChangedEventArgs e)

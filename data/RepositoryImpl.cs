@@ -54,6 +54,8 @@ namespace ImitComb.data
         private List<string> listSelectZDVs;
         private List<string> listAutoCheckZDVs;
         private List<string> listDataChangeTags;
+        private Dictionary<int, List<string>> dictDataChangeTags;
+        private Dictionary<string, int> _dictDataChangeTags;
         private List<string> listSelectOneZDV;
         private Regex regexCombs;
         //private string pattern = @"[а-яA-Я]+\s+[№:]+\s+\d+";
@@ -85,8 +87,8 @@ namespace ImitComb.data
 
         private string nameTU;
         private int numberTU;
-        private int numRowActiveTag = 0;
         private int prevIndexComb = -1;
+        private int indexComb = -1;
 
         private Dictionary<int, int> setValue;
 
@@ -99,7 +101,11 @@ namespace ImitComb.data
             dictErrorCombs = new Dictionary<string, List<String>>();
 
             listSelectZDVs = new List<string>();
+            
             listDataChangeTags = new List<string>();
+            dictDataChangeTags = new Dictionary<int, List<string>>();
+            _dictDataChangeTags = new Dictionary<string, int>();
+
             listAutoCheckZDVs = new List<string>();
             listSelectOneZDV = new List<string>();
 
@@ -400,7 +406,7 @@ namespace ImitComb.data
             OPCItems opcItems = opcData.opcItems;
             for (int i = 1; i <= count; i++)
             {
-                OPCItem item = opcItems.GetOPCItem((int)arrayClass.ServerHandles.GetValue(i));
+                OPCItem item = opcItems.GetOPCItem((Int32)arrayClass.ServerHandles.GetValue(i));
                 item.Read(1, out value, out quality, out timeStamp);
                 listValue.Add(new SignalState(value, quality, timeStamp));
             }
@@ -413,7 +419,29 @@ namespace ImitComb.data
             ReadTagsValues(listDataChangeTags, arrayDataChange, opcDataChange, GROUP_OPC_DATA_CHANGE, "list");
             opcState.OpcGroup = opcDataChange.opcGroup;
             opcDataChange.opcGroup.DataChange += ObjOPCGroup1_DataChange;
+            opcState.tags = FormTagsVM();
             return opcState;
+        }
+
+        //для ViewModel формируем список тэгов, хэндлов для них и значений установки и снятия
+        private List<TagForViewModel> FormTagsVM()
+		{
+            int handle = 1;
+            List<TagForViewModel> tagVMs = new List<TagForViewModel>();
+			foreach (string item in _dictDataChangeTags.Keys)
+			{
+                TagForViewModel tagVM = new TagForViewModel();
+                tagVM.Handle = handle++;
+                tagVM.Tag = item;
+                indexComb = _dictDataChangeTags[item];
+                SetCheckValue();
+                tagVM.DrawDown = setValue[1];
+                tagVM.Reset = setValue[2];
+                tagVMs.Add(tagVM);
+            }
+            _dictDataChangeTags.Clear();
+            indexComb = -1;
+            return tagVMs;
         }
 
         private List<SignalState> ReadTagsValues(List<string> listTags, ArrayClass arrayClass, OPCSettings opcData, string nameGroup, string data = "dictionary")
@@ -436,11 +464,17 @@ namespace ImitComb.data
         {
             if (worksheetSubScribe != null)
             {
-                int i = 1;
+                int i = 2;
                 while (worksheetSubScribe.Cell(i, 1).Value.ToString() != "")
                 {
-                        listDataChangeTags.Add(worksheetSubScribe.Cell(i, 1).Value.ToString());
-                        i++;
+                    string tag = worksheetSubScribe.Cell(i, 1).Value.ToString();
+                    int index = Convert.ToInt32(worksheetSubScribe.Cell(i, 2).Value);
+                    listDataChangeTags.Add(tag);    //лист с тэгами для подписки во viewModel
+                    List<string> listTag = new List<string>();
+                    listTag.Add(tag);
+                    dictDataChangeTags.Add(index, listTag); //формируем словарь с индексами и тэгами
+                    _dictDataChangeTags.Add(tag, index); //формируем словарь с индексами и тэгами
+                    i++;
                 }
             }
             return listDataChangeTags.Count > 0;
@@ -479,6 +513,7 @@ namespace ImitComb.data
 
         private void ExecuteAutoCheck()
         {
+            var startTime = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 if (dictCombs.Count == 0 || dictTags.Count == 0) return;
@@ -486,8 +521,8 @@ namespace ImitComb.data
                 {
                     string keyCurrentComb = keyValuePair.Key;
 
-                    int indexComb = Convert.ToInt32(Regex.Match(Regex.Matches(keyCurrentComb, @"[а-яA-Я]+\s+[№:]+\s+\d+")[1].Value, @"\d+").Value);
-                    SetCheckValue(indexComb);
+                    indexComb = Convert.ToInt32(Regex.Match(Regex.Matches(keyCurrentComb, @"[а-яA-Я]+\s+[№:]+\s+\d+")[1].Value, @"\d+").Value);
+                    SetCheckValue();
 
                     listAutoCheckZDVs.Clear();
                     foreach (var value in keyValuePair.Value)
@@ -506,7 +541,15 @@ namespace ImitComb.data
                     }
                     ExecuteStep(command.SetStatusOpen(), 6, setValue[2], keyCurrentComb);
                 }
-                OutputErrorData();
+                startTime.Stop();
+                var resultTime = startTime.Elapsed;
+                // elapsedTime - строка, которая будет содержать значение затраченного времени
+                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}:{3:00}",
+                    resultTime.Days,
+                    resultTime.Hours,
+                    resultTime.Minutes,
+                    resultTime.Seconds);
+                OutputErrorData(elapsedTime);
                 exeState.GetStateExecute(DONE_AUTO_CHECK, nameTU);
                 MessageBox.Show(DONE_AUTO_CHECK);
             }
@@ -514,25 +557,34 @@ namespace ImitComb.data
             {}
         }
 
+        private void SetValues(int drapdown, int reset)
+		{
+            setValue.Add(1, drapdown);  //сработка
+            setValue.Add(2, reset);     //сброс сработки
+        }
+
         //установить значения с которыми будут проверяться комбинации
-        private void SetCheckValue(int indexComb)
+        private void SetCheckValue()
 		{
             if (prevIndexComb == indexComb && setValue.Count > 0)
                 return;
             setValue.Clear();
-            switch (indexComb)
-			{
-                case 4:
-                    setValue.Add(1, 0);
-                    setValue.Add(2, 1);
-                    numRowActiveTag = 1;
-                    break;
-                case 2010:
-                    setValue.Add(1, 1);
-                    setValue.Add(2, 2);
-                    numRowActiveTag = 0;
-                    break;
-            }
+            //перекрытие
+            if (indexComb >= 0 && indexComb <= 4)
+                SetValues(1, 0);
+            //отсечение
+            if (indexComb >= 1000 && indexComb <= 1100)
+                SetValues(1, 0);
+            //блокировка
+            if (indexComb >= 2000 && indexComb <= 2012)
+                SetValues(1, 2);
+            //путь течения
+            if (indexComb >= 4003 && indexComb <= 4008)
+                SetValues(1, 2);
+            //луппинг
+            if (indexComb >= 5000 && indexComb <= 5005)
+                SetValues(0, 1);
+
             prevIndexComb = indexComb;
 		}
 
@@ -540,12 +592,12 @@ namespace ImitComb.data
         {
             Imitation(commandValue, keyOperation);                     //выполним операции с задвижками из комбинации согласно команде(закрыть, открыть)
             Thread.Sleep(DELAY);
-            int valueTag = ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[numRowActiveTag].Value != null ?
-                                            (Int32)ReadTagsValues(listDataChangeTags, arrayRead, opcRead, GROUP_OPC_READ, "list")[numRowActiveTag].Value : 0;
+            int valueTag = ReadTagsValues(dictDataChangeTags[indexComb], arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value != null ?
+                                            (Int32)ReadTagsValues(dictDataChangeTags[indexComb], arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value : 0;
             SetDictErrorCombs(currValueTag, keyCurrentComb, valueTag, nameZDV);
         }
 
-        private void OutputErrorData()
+        private void OutputErrorData(string elapsedTime)
         {
             using (FileStream fileStream = new FileStream(path, FileMode.OpenOrCreate))
             {
@@ -560,6 +612,7 @@ namespace ImitComb.data
                                     else
                                         writer.WriteLine(keyValue.Key);
                             }
+                            writer.WriteLine(elapsedTime);
                             writer.WriteLine(DONE_AUTO_CHECK);
                         }
                 }
@@ -576,14 +629,14 @@ namespace ImitComb.data
             return result.ToString().Trim();
         }
 
-        private void SetDictErrorCombs(int currBlockWay, string keyCurrentComb, int valueTag, string nameZDV)
+        private void SetDictErrorCombs(int currValueTag, string keyCurrentComb, int valueTag, string nameZDV)
         {
             //if (currBlockWay != (Int32)arrayDataChange.ItemValues.GetValue(valueTag))
             //    if (!dictErrorCombs.ContainsKey(keyCurrentComb))
             //        dictErrorCombs.Add(keyCurrentComb, new List<string>());
             //    else
             //        dictErrorCombs[keyCurrentComb].Add(nameZDV);
-            if (currBlockWay != valueTag)
+            if (currValueTag != valueTag)
             {
                 if (!dictErrorCombs.ContainsKey(keyCurrentComb))
                 {

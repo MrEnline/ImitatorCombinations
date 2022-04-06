@@ -33,9 +33,7 @@ namespace ImitComb
         private Label labelStateAutoImitation;
         private Label labelCombAutoImitation;
         private Label labelZDVAutoImitation;
-        private Button buttonAutoCheckAG2;
-        private Button buttonAutoCheckAG3;
-        private Button buttonAutoCheckCurrent;
+        private Button buttonAutoCheck;
         private Button buttonAutoCheckBlock;
         private Button buttonImitation;
         private Button buttonOpen;
@@ -44,7 +42,11 @@ namespace ImitComb
         private Button buttonClosing;
         private Button buttonMiddle;
         private Button buttonClearForm;
-        private Rectangle blinkerBlockWay11;
+        private Rectangle blinkerBlockWay;
+        private Rectangle blinkerAlarm;
+        private Rectangle blinkerCutOff;
+        private Rectangle blinkerLooping;
+        private Rectangle blinkerFlowPath;
         private RepositoryImpl repository;
         private ReadCombinationsUseCase readCombinations;
         private CheckExcelUseCase checkExcel;
@@ -80,8 +82,7 @@ namespace ImitComb
             labelStateAutoImitation = mainWindow.labelStateAutoImitation;
             labelCombAutoImitation = mainWindow.labelCombAutoImitation;
             labelZDVAutoImitation = mainWindow.labelZDVAutoImitation;
-            buttonAutoCheckAG2 = mainWindow.buttonAutoCheckAG2;
-            buttonAutoCheckAG3 = mainWindow.buttonAutoCheckAG3;
+            buttonAutoCheck = mainWindow.buttonAutoCheck;
             buttonImitation = mainWindow.buttonImitation;
             buttonOpen = mainWindow.buttonOpen;
             buttonClose = mainWindow.buttonClose;
@@ -89,7 +90,11 @@ namespace ImitComb
             buttonClosing = mainWindow.buttonClosing;
             buttonMiddle = mainWindow.buttonMiddle;
             buttonClearForm = mainWindow.buttonClearForm;
-            blinkerBlockWay11 = mainWindow.blinkerBlockWay11;
+            blinkerBlockWay = mainWindow.blinkerBlockWay;
+            blinkerAlarm = mainWindow.blinkerAlarm;
+            blinkerCutOff = mainWindow.blinkerCutOff;
+            blinkerFlowPath = mainWindow.blinkerFlowPath;
+            blinkerLooping = mainWindow.blinkerLooping;
             checkBoxClosing.IsChecked = true;
             repository = new RepositoryImpl();
             readCombinations = new ReadCombinationsUseCase(repository);
@@ -276,45 +281,52 @@ namespace ImitComb
         //обработчик события
         public void ObjOPCGroup_DataChange(int TransactionID, int NumItems, ref Array ClientHandles, ref Array ItemValues, ref Array Qualities, ref Array TimeStamps)
         {
-
-            if (ItemValues.GetValue(1) != null && 2 == (Int32)ItemValues.GetValue(1))
-            {
-                SolidColorBrush solidColor = new SolidColorBrush(Colors.Green);
-                blinkerBlockWay11.Fill = solidColor;
-            } else
-            {
-                SolidColorBrush solidColor = new SolidColorBrush(Colors.Red);
-                blinkerBlockWay11.Fill = solidColor;
+			for (int i = 1; i <= NumItems; i++)
+			{
+                int itemHandle = (Int32)ClientHandles.GetValue(i);
+                Rectangle blinker = GetBlinker(opcState.tags[itemHandle - 1].Tag);
+                if (ItemValues.GetValue(i) != null && opcState.tags[itemHandle - 1].DrawDown == Convert.ToInt32(ItemValues.GetValue(i)))
+                    SetColorBlinker(blinker, Colors.Red);
+                if (ItemValues.GetValue(i) != null && opcState.tags[itemHandle - 1].Reset == Convert.ToInt32(ItemValues.GetValue(i)))
+                    SetColorBlinker(blinker, Colors.Green);
             }
+        }
+
+        private void SetColorBlinker(Rectangle blinker, Color color)
+		{
+            SolidColorBrush solidColor = new SolidColorBrush(color);
+            blinker.Fill = solidColor;
+        }
+
+        private Rectangle GetBlinker(string tag)
+		{
+            Rectangle blinker = null;
+            if (tag.ToLower().Contains("alarm"))
+                blinker = blinkerAlarm;
+            if (tag.ToLower().Contains("cutoff"))
+                blinker = blinkerCutOff;
+            if (tag.ToLower().Contains("blockway"))
+                blinker = blinkerBlockWay;
+            if (tag.ToLower().Contains("waytorpnpslast"))
+                blinker = blinkerFlowPath;
+            if (tag.ToLower().Contains("looping"))
+                blinker = blinkerLooping;
+            return blinker;
         }
 
         public void GetStateExecute(string state, string nameTU, string combination = null, bool stopAutoImitation = false)
         {
             this.stopAutoImitation = stopAutoImitation;
             
-            if (!WorkWithButtons(nameTU)) return;
+            //if (!WorkWithButtons(nameTU)) return;
             
             mainWindow.Dispatcher.Invoke(() =>
             {
-                if (stopAutoImitation)
-                {
-                    buttonAutoCheckCurrent.Content = "Автопроверка " + nameTU;
-                }
-                else
-                {
-                    buttonAutoCheckCurrent.Content = "Остановить\nавтопроверку " + nameTU;
-                }
+                buttonAutoCheck.Content = stopAutoImitation ? "Автопроверка " + nameTU : "Остановить\nавтопроверку " + nameTU;
                 labelStateAutoImitation.Content = state;
-                if (!String.IsNullOrEmpty(combination))
-                {
-                    labelCombAutoImitation.Content = combination.Split('%')[0];
-                    labelZDVAutoImitation.Content = combination.Split('%')[1];
-                }
-                else
-                {
-                    labelCombAutoImitation.Content = "";
-                    labelZDVAutoImitation.Content = "";
-                }
+                labelCombAutoImitation.Content = String.IsNullOrEmpty(combination) ? combination : combination.Split('%')[0];
+                labelZDVAutoImitation.Content = String.IsNullOrEmpty(combination) ? combination : combination.Split('%')[1];
+
                 if (state == DONE_AUTO_CHECK || state == ABORT_AUTO_CHECK)
                     UnBlockElementsForm();
                 else
@@ -323,29 +335,29 @@ namespace ImitComb
             
         }
 
-        private bool WorkWithButtons(string nameTU)
-		{
-            if (!String.IsNullOrEmpty(nameTU))
-            {
-                int numberTU = Convert.ToInt16(Regex.Match(nameTU, @"\d").Value);
-                switch (numberTU)
-                {
-                    case 2:
-                        SetWorkButtons(buttonAutoCheckAG2, buttonAutoCheckAG3);
-                        return true;
-                    case 3:
-                        SetWorkButtons(buttonAutoCheckAG3, buttonAutoCheckAG2);
-                        return true;
-                }
-            }
-            return false;
-        }
+  //      private bool WorkWithButtons(string nameTU)
+		//{
+  //          if (!String.IsNullOrEmpty(nameTU))
+  //          {
+  //              int numberTU = Convert.ToInt16(Regex.Match(nameTU, @"\d").Value);
+  //              switch (numberTU)
+  //              {
+  //                  case 2:
+  //                      SetWorkButtons(buttonAutoCheckAG2, buttonAutoCheckAG3);
+  //                      return true;
+  //                  case 3:
+  //                      SetWorkButtons(buttonAutoCheckAG3, buttonAutoCheckAG2);
+  //                      return true;
+  //              }
+  //          }
+  //          return false;
+  //      }
 
-        private void SetWorkButtons(Button buttonCurrent, Button buttonBlock)
-		{
-            buttonAutoCheckCurrent = buttonCurrent;
-            buttonAutoCheckBlock = buttonBlock;
-        }
+  //      private void SetWorkButtons(Button buttonCurrent, Button buttonBlock)
+		//{
+  //          buttonAutoCheckCurrent = buttonCurrent;
+  //          buttonAutoCheckBlock = buttonBlock;
+  //      }
 
         private void BlockElementsForm()
         {
@@ -360,7 +372,6 @@ namespace ImitComb
             buttonClosing.IsEnabled = false;
             buttonMiddle.IsEnabled = false;
             buttonClearForm.IsEnabled = false;
-            buttonAutoCheckBlock.IsEnabled = false;
     }
 
         private void UnBlockElementsForm()
@@ -376,7 +387,6 @@ namespace ImitComb
             buttonClosing.IsEnabled = true;
             buttonMiddle.IsEnabled = true;
             buttonClearForm.IsEnabled = true;
-            buttonAutoCheckBlock.IsEnabled = true;
         }
     }
 }
