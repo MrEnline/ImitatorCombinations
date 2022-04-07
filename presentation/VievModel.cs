@@ -139,6 +139,7 @@ namespace ImitComb
 
         private void SetParamOPCDataChange()
         {
+            opcGroupDataChange = null;
             if (opcState.ConnectOPC)
             {
                 opcGroupDataChange = opcState.OpcGroup;
@@ -317,12 +318,12 @@ namespace ImitComb
         public void GetStateExecute(string state, string nameTU, string combination = null, bool stopAutoImitation = false)
         {
             this.stopAutoImitation = stopAutoImitation;
-            
+
             //if (!WorkWithButtons(nameTU)) return;
-            
+            //TODO Добавить счетчик проверенных комбинаций
             mainWindow.Dispatcher.Invoke(() =>
             {
-                buttonAutoCheck.Content = stopAutoImitation ? "Автопроверка " + nameTU : "Остановить\nавтопроверку " + nameTU;
+                buttonAutoCheck.Content = stopAutoImitation ? "Автопроверка " + nameTU : "     Остановить\nавтопроверку " + nameTU;
                 labelStateAutoImitation.Content = state;
                 labelCombAutoImitation.Content = String.IsNullOrEmpty(combination) ? combination : combination.Split('%')[0];
                 labelZDVAutoImitation.Content = String.IsNullOrEmpty(combination) ? combination : combination.Split('%')[1];

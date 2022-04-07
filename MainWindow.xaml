@@ -27,13 +27,13 @@
         <ListBox x:Name="listBoxSelectZDV" HorizontalAlignment="Left" Height="188" Margin="336.369,106,0,0" VerticalAlignment="Top" Width="303" Grid.RowSpan="2" Grid.Column="1"/>
         <Label x:Name="labelZDVs" Content="Задвижки из комбинации" HorizontalAlignment="Left" Margin="336.369,75,0,0" VerticalAlignment="Top" Width="164" Grid.Column="1"/>
         <Button x:Name="buttonOpen" Content="Открыта" HorizontalAlignment="Left" Margin="644.369,106,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Column="1"/>
-        <Button x:Name="buttonClose" Content="Закрыта" HorizontalAlignment="Left" Margin="644,137,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Column="1" Grid.RowSpan="2"/>
-        <Button x:Name="buttonOpening" Content="Открывается" HorizontalAlignment="Left" Margin="644,14,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
-        <Button x:Name="buttonClosing" Content="Закрывается" HorizontalAlignment="Left" Margin="644,45,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
-        <Button x:Name="buttonMiddle" Content="Промежуток" HorizontalAlignment="Left" Margin="644,76,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
-        <Button x:Name="buttonClearForm" Content="Очистить список" HorizontalAlignment="Left" Margin="644,108,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="buttonClose" Content="Закрыта" HorizontalAlignment="Left" Margin="644,138,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Column="1"/>
+        <Button x:Name="buttonOpening" Content="Открывается" HorizontalAlignment="Left" Margin="644,0,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Column="1" Grid.Row="1"/>
+        <Button x:Name="buttonClosing" Content="Закрывается" HorizontalAlignment="Left" Margin="644,32,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="buttonMiddle" Content="Промежуток" HorizontalAlignment="Left" Margin="644,65,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="buttonClearForm" Content="Очистить список" HorizontalAlignment="Left" Margin="644,98,0,0" VerticalAlignment="Top" Width="98" Height="27" Grid.Row="1" Grid.Column="1"/>
         <CheckBox x:Name="checkBoxClosing" Content="Закрытие задвижек" HorizontalAlignment="Left" Margin="218,148,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.ColumnSpan="2"/>
-        <Button x:Name="buttonImitation" Content="Имитация" HorizontalAlignment="Left" Margin="169,144,0,0" VerticalAlignment="Top" Width="152" Height="33" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="buttonImitation" Content="Имитация" HorizontalAlignment="Left" Margin="169,144,0,0" VerticalAlignment="Top" Width="152" Height="36" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
         <Label x:Name="labelResultImitation" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,146,0,0" VerticalAlignment="Top" Width="254" FontSize="18" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
         <CheckBox x:Name="checkBoxClosed" Content="Перекрытие задвижек" HorizontalAlignment="Left" Margin="218,168,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.ColumnSpan="2"/>
         <CheckBox x:Name="checkBoxOpen" Content="Открыть все задвижки в комбинации" HorizontalAlignment="Left" Margin="218,188,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.ColumnSpan="2"/>
@@ -42,7 +42,7 @@
         <Label x:Name="labelZDVAutoImitation" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,259,0,0" VerticalAlignment="Top" Width="403" FontSize="14" FontWeight="Bold" Grid.Row="1" Height="32" Grid.Column="1"/>
         <Rectangle x:Name="blinkerBlockWay" Fill="#FFF4F4F5" Height="18" Margin="218,309,53,0" Stroke="Black" VerticalAlignment="Top" Grid.Row="1"/>
         <Label x:Name="labelStateBlockPipe" BorderBrush="Black" BorderThickness="1px" Content="Состояние блокировочного трубопровода" HorizontalAlignment="Left" Margin="241,302,0,101" Width="367" Grid.Row="1" Grid.ColumnSpan="2"/>
-        <Button x:Name="buttonAutoCheck" Content="Автопроверка" HorizontalAlignment="Left" Margin="169,187,0,0" VerticalAlignment="Top" Width="152" Height="33" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="buttonAutoCheck" Content="Автопроверка" HorizontalAlignment="Left" Margin="169,185,0,0" VerticalAlignment="Top" Width="152" Height="35" RenderTransformOrigin="0.286,2.025" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
         <Rectangle x:Name="blinkerAlarm" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="18" Margin="218,231,0,0" Stroke="Black" VerticalAlignment="Top" Width="17" Grid.Row="1"/>
         <Label x:Name="labelStateProtection" BorderBrush="Black" BorderThickness="1px" Content="Состояние защиты" HorizontalAlignment="Left" Margin="241,225,0,0" VerticalAlignment="Top" Width="367" Height="33" Grid.Row="1" Grid.ColumnSpan="2"/>
         <Rectangle x:Name="blinkerCutOff" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="18" Margin="218,270,0,0" Stroke="Black" VerticalAlignment="Top" Width="17" Grid.Row="1"/>
