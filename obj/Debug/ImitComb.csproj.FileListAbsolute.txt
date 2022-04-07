@@ -4,11 +4,15 @@ d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\ImitComb.pdb
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\ClosedXML.dll
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\DocumentFormat.OpenXml.dll
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\ExcelNumberFormat.dll
+d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\GodSharp.Opc.Da.dll
+d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\GodSharp.Opc.Da.OpcAutomation.dll
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\System.IO.Packaging.dll
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\ClosedXML.pdb
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\ClosedXML.xml
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\DocumentFormat.OpenXml.xml
 d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\ExcelNumberFormat.xml
+d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\GodSharp.Opc.Da.xml
+d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\GodSharp.Opc.Da.OpcAutomation.xml
 d:\Projects\C#\ImitationCombination\ImitComb\obj\Debug\ImitComb.csproj.AssemblyReference.cache
 d:\Projects\C#\ImitationCombination\ImitComb\obj\Debug\MainWindow.g.cs
 d:\Projects\C#\ImitationCombination\ImitComb\obj\Debug\App.g.cs
@@ -21,7 +25,3 @@ d:\Projects\C#\ImitationCombination\ImitComb\obj\Debug\ImitComb.csproj.GenerateR
 d:\Projects\C#\ImitationCombination\ImitComb\obj\Debug\ImitComb.csproj.CoreCompileInputs.cache
 d:\Projects\C#\ImitationCombination\ImitComb\obj\Debug\ImitComb.exe
 d:\Projects\C#\ImitationCombination\ImitComb\obj\Debug\ImitComb.pdb
-d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\GodSharp.Opc.Da.dll
-d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\GodSharp.Opc.Da.OpcAutomation.dll
-d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\GodSharp.Opc.Da.xml
-d:\Projects\C#\ImitationCombination\ImitComb\bin\Debug\GodSharp.Opc.Da.OpcAutomation.xml
