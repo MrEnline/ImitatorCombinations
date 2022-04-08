@@ -67,10 +67,7 @@ namespace ImitComb
         private void TextBoxPathCombFile_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
-            {
                 viewModel.CheckExcel((sender as TextBox).Text);
-                viewModel.ReadCombinations();
-            }
         }
 
         private void TextBoxNameServer_KeyDown(object sender, KeyEventArgs e)

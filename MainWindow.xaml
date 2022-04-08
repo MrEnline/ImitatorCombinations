@@ -51,5 +51,7 @@
         <Label x:Name="labelStateFlowPath" BorderBrush="Black" BorderThickness="1px" Content="Путь течения" HorizontalAlignment="Left" Margin="241,340,0,63" Width="367" Grid.Row="1" Grid.ColumnSpan="2"/>
         <Rectangle x:Name="blinkerLooping" Fill="#FFF4F4F5" Height="18" Margin="218,391,53,0" Stroke="Black" VerticalAlignment="Top" Grid.Row="1"/>
         <Label x:Name="labelStateLooping" BorderBrush="Black" BorderThickness="1px" Content="Луппинг" HorizontalAlignment="Left" Margin="241,384,0,19" Width="367" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Label x:Name="labelCountCheckComb" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,295,0,0" VerticalAlignment="Top" Width="403" FontSize="14" FontWeight="Bold" Grid.Row="1" Height="32" Grid.Column="1"/>
+        <Label x:Name="labelEllapsedTime" BorderBrush="Black" BorderThickness="1px" Content="" HorizontalAlignment="Left" Margin="339,332,0,0" VerticalAlignment="Top" Width="403" FontSize="14" FontWeight="Bold" Grid.Row="1" Height="32" Grid.Column="1"/>
     </Grid>
 </Window>

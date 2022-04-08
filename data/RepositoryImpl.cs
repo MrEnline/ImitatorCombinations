@@ -10,11 +10,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace ImitComb.data
 {
     //TODO Сделать начало работы с определенной комбинации, а следовательно и поиск данной комбинации
-    //TODO Добавить счетчик проверенных комбинаций
 
     class RepositoryImpl : IOperations
     {
@@ -48,7 +49,10 @@ namespace ImitComb.data
         private const string EXECUTE_AUTO_CHECK = "Выполняется";
         private const string DONE_AUTO_CHECK = "Операция выполнена";
         private const string ABORT_AUTO_CHECK = "Операция прервана";
+        
         private string path = @"./ResultAutoImitations.txt";
+        private string nameServer;
+        private string nameArea;
 
         private Dictionary<string, List<String>> dictCombs;
         private Dictionary<string, string> dictTags;
@@ -64,9 +68,8 @@ namespace ImitComb.data
 
         private Regex regexCombs;
         //private string pattern = @"[а-яA-Я]+\s+[№:]+\s+\d+";
-        private string pattern = @"[а-яA-Я]+\s+[№:]+\s+\d+[^.]";
-        private string nameServer;
-        private string nameArea;
+        private string pattern = @"[а-яA-Я]+\s+[№:]+\s+\d*[^.]";
+       
         private OPCServer server;
         private OPCGroups opcGroups;
 
@@ -89,6 +92,7 @@ namespace ImitComb.data
         private int backThreadId = 0;
 
         private IExeState exeState;
+        private StatusOperation statusOperation;
 
         private string nameTU;
         private int numberTU;
@@ -131,6 +135,7 @@ namespace ImitComb.data
 
             setValue = new Dictionary<int, int>();
 
+            statusOperation = new StatusOperation();
         }
 
         public bool CheckExcel(string pathCombFile)
@@ -145,11 +150,7 @@ namespace ImitComb.data
                 {
                     if (isConnectExcel)
                         ClearAllData();
-                    workbook = new XLWorkbook(pathCombFile);
-                    worksheetCombs = workbook.Worksheet(NAME_COMBS_LIST_EXCEL);
-                    worksheetTags = workbook.Worksheet(NAME_TAGS_LIST_EXCEL);
-                    worksheetSubScribe = workbook.Worksheet(NAME_SUBSCRIBE_LIST_EXCEL);
-                    worksheetSettings = workbook.Worksheet(NAME_SETTINGS_LIST_EXCEL);
+                    SetRefExcelElement(pathCombFile);
                     GetNameTU();
                     isConnectExcel = true;
                     return isConnectExcel;
@@ -162,6 +163,15 @@ namespace ImitComb.data
             }
             isConnectExcel = false;
             return isConnectExcel;
+        }
+
+        private void SetRefExcelElement(string pathCombFile)
+		{
+            workbook = new XLWorkbook(pathCombFile);
+            worksheetCombs = workbook.Worksheet(NAME_COMBS_LIST_EXCEL);
+            worksheetTags = workbook.Worksheet(NAME_TAGS_LIST_EXCEL);
+            worksheetSubScribe = workbook.Worksheet(NAME_SUBSCRIBE_LIST_EXCEL);
+            worksheetSettings = workbook.Worksheet(NAME_SETTINGS_LIST_EXCEL);
         }
 
         private void ClearAllData()
@@ -219,40 +229,43 @@ namespace ImitComb.data
             return "";
         }
 
-        //TODO Реализовать в фоновом потоке, т.к. блокирует UI
-        public Dictionary<string, List<string>> ReadCombinations()
+        public void ReadCombinations(IExeState exeState)
         {
-            if (workbook == null) return null;
-            if (dictTags.Count == 0)
-                ReadTags();
-            dictCombs.Clear();
-            try
+            this.exeState = exeState;
+            new Thread(() =>
             {
-                int count = 0, row = 1, col = 1;
+                if (workbook == null) return;
+                if (dictTags.Count == 0)
+                    ReadTagsFromSource();
+                dictCombs.Clear();
                 string keyComb = "";
-                while (count < OFFSET_BETWEEN_COMBINATIONS)
+                int count = 0, row = 1, col = 1;
+                try
                 {
-                        string valueCell = worksheetCombs.Cell(row, col).Value as String;
+                    while (count < OFFSET_BETWEEN_COMBINATIONS)
+                    {
+                        string valueCell = worksheetCombs.Cell(row, col).Value.ToString();
                         count = String.IsNullOrEmpty(valueCell) ? count + 1 : 0;
                         CreateDictionaryCombinations(valueCell, ref keyComb);
                         row++;
+                    }
+                    exeState.CreateListBoxItems(dictCombs);
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            return dictCombs;
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }).Start();
         }
 
-        private void ReadTags()
+        private void ReadTagsFromSource()
         {
             int row = 1, colDesc = 1, colTags = 2;
             dictTags.Clear();
             while (!String.IsNullOrEmpty(worksheetTags.Cell(row, colDesc).Value.ToString()))
             {
-                string key = (worksheetTags.Cell(row, colDesc).Value as String).ToLower();
-                string value = worksheetTags.Cell(row, colTags).Value as String;
+                string key = worksheetTags.Cell(row, colDesc).Value.ToString().ToLower();
+                string value = worksheetTags.Cell(row, colTags).Value.ToString();
                 dictTags.Add(key, value);
                 row++;
             }
@@ -300,7 +313,6 @@ namespace ImitComb.data
             MessageBox.Show("Список с задвижками пустой");
             return null;
         }
-
 
         public void ClearListSelectZDVs()
         {
@@ -535,7 +547,8 @@ namespace ImitComb.data
 
         private void AbortBackThread()
         {
-            exeState.GetStateExecute(ABORT_AUTO_CHECK, nameTU, stopAutoImitation: true);
+            GetStatusOperation(ABORT_AUTO_CHECK, nameTU, isStopAutoImitation: true);
+            exeState.GetStateExecute(statusOperation);
             backThread.Abort();
             backThread.Join();
             ResetSettingsBackThread();
@@ -560,28 +573,26 @@ namespace ImitComb.data
 
         private void ExecuteAutoCheck()
         {
-            var startTime = System.Diagnostics.Stopwatch.StartNew();
-            string keyCurrentComb = "";
+            var startTime = Stopwatch.StartNew();
+            string keyCurrentComb;
+            statusOperation.CountCombinations = 0;
+            statusOperation.EllapsedTime = "00:00:00:00";
             try
             {
                 if (dictCombs.Count == 0 || dictTags.Count == 0) return;
                 foreach (KeyValuePair<string, List<string>> keyValuePair in dictCombs)
                 {
                     keyCurrentComb = keyValuePair.Key;
-
                     indexComb = Convert.ToInt32(Regex.Match(Regex.Matches(keyCurrentComb, @"[а-яA-Я]+\s+[№:]+\s+\d+")[1].Value, @"\d+").Value);
                     SetCheckValue();
-
-                    listAutoCheckZDVs.Clear();
-                    foreach (var value in keyValuePair.Value)
-                    {
-                        listAutoCheckZDVs.Add(value);
-                    }
-                    exeState.GetStateExecute(EXECUTE_AUTO_CHECK, nameTU);
+                    FormationListAutoCheckZDVs(keyValuePair.Value);
+                    GetStatusOperation(EXECUTE_AUTO_CHECK, nameTU);
+                    exeState.GetStateExecute(statusOperation);
                     ExecuteStep(command.SetStatusClose(), 6, setValue[1], keyCurrentComb);
                     foreach (var item in listAutoCheckZDVs)
                     {
-                        exeState.GetStateExecute(EXECUTE_AUTO_CHECK, nameTU, keyCurrentComb + "%" + item);
+                        GetStatusOperation(EXECUTE_AUTO_CHECK, nameTU, keyCurrentComb + "%" + item);
+                        exeState.GetStateExecute(statusOperation);
                         listSelectOneZDV.Clear();
                         listSelectOneZDV.Add(item);
                         ExecuteStep(command.SetStatusOpen(), 7, setValue[2], keyCurrentComb, item);
@@ -589,9 +600,12 @@ namespace ImitComb.data
                     }
                     ExecuteStep(command.SetStatusOpen(), 6, setValue[2], keyCurrentComb);
                     lastCheckNumbComb = Regex.Match(Regex.Matches(keyCurrentComb, @"[а-яA-Я]+\s+[№:]+\s+\d+")[0].Value, @"\d+").Value;
+                    statusOperation.CountCombinations++;
+                    statusOperation.EllapsedTime = GetTime(startTime);
                 }
                 startTime.Stop();
-                exeState.GetStateExecute(DONE_AUTO_CHECK, nameTU, stopAutoImitation: true);
+                GetStatusOperation(DONE_AUTO_CHECK, nameTU, isStopAutoImitation: true);
+                exeState.GetStateExecute(statusOperation);
                 ResetSettingsBackThread();
                 ResetOPCGroup();
                 MessageBox.Show(DONE_AUTO_CHECK);
@@ -605,15 +619,34 @@ namespace ImitComb.data
             }
 			finally
 			{
-                var resultTime = startTime.Elapsed;
-                // elapsedTime - строка, которая будет содержать значение затраченного времени
-                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}:{3:00}",
-                    resultTime.Days,
-                    resultTime.Hours,
-                    resultTime.Minutes,
-                    resultTime.Seconds);
-                OutputErrorData(elapsedTime);
+                OutputErrorData(GetTime(startTime));
 			}
+        }
+
+        private void FormationListAutoCheckZDVs(List<string> listZDVs)
+		{
+            listAutoCheckZDVs.Clear();
+            foreach (var value in listZDVs)
+                listAutoCheckZDVs.Add(value);
+        }
+
+        private void GetStatusOperation(string state, string nameTU, string combination = null, bool isStopAutoImitation = false)
+		{
+            statusOperation.State = state;
+            statusOperation.NameTU = nameTU;
+            statusOperation.Combination = combination;
+            statusOperation.IsStopAutoImitation = isStopAutoImitation;
+		}
+
+        private string GetTime(Stopwatch startTime)
+		{
+            var resultTime = startTime.Elapsed;
+            // elapsedTime - строка, которая будет содержать значение затраченного времени
+            return String.Format("{0:00}:{1:00}:{2:00}:{3:00}",
+                resultTime.Days,
+                resultTime.Hours,
+                resultTime.Minutes,
+                resultTime.Seconds);
         }
 
         private void SetValues(int drapdown, int reset)
@@ -651,9 +684,15 @@ namespace ImitComb.data
         {
             Imitation(commandValue, keyOperation);                     //выполним операции с задвижками из комбинации согласно команде(закрыть, открыть)
             Thread.Sleep(DELAY);
-            int valueTag = ReadTagsValues(dictDataChangeTags[indexComb], arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value != null ?
-                                            Convert.ToInt32(ReadTagsValues(dictDataChangeTags[indexComb], arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value) : 0;
-            SetDictErrorCombs(currValueTag, keyCurrentComb, valueTag, nameZDV);
+			try
+			{
+                int valueTag = Convert.ToInt32(ReadTagsValues(dictDataChangeTags[indexComb], arrayRead, opcRead, GROUP_OPC_READ, "list")[0].Value);
+                SetDictErrorCombs(currValueTag, keyCurrentComb, valueTag, nameZDV);
+            }
+            catch
+			{
+                MessageBox.Show("Заполните список сигналов для подписки во вкладке Subscribe");
+			}
         }
 
         private void OutputErrorData(string elapsedTime)

@@ -1,13 +1,11 @@
-﻿using System;
+﻿using ImitComb.domain.Entity;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ImitComb.presentation
 {
     interface IExeState
     {
-        void GetStateExecute(string state, string nameTU, string combination = "", bool stopAutoImitation = false);
+        void GetStateExecute(StatusOperation status);
+        void CreateListBoxItems(Dictionary<string, List<string>> dictCombs);
     }
 }

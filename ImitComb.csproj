@@ -114,6 +114,7 @@
     <Compile Include="domain\AutoCheckUseCase.cs" />
     <Compile Include="domain\ConnectServerUseCase.cs" />
     <Compile Include="domain\Entity\OPCState.cs" />
+    <Compile Include="domain\Entity\StatusOperation.cs" />
     <Compile Include="domain\Entity\TagForViewModel.cs" />
     <Compile Include="domain\IOperations.cs" />
     <Compile Include="domain\CheckExcelUseCase.cs" />

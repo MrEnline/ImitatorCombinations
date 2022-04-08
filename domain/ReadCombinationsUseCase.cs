@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using ImitComb.presentation;
 
 namespace ImitComb.domain
 {
@@ -10,9 +10,9 @@ namespace ImitComb.domain
             this.repositoryImpl = repositoryImpl;
         }
 
-        public Dictionary<string, List<string>> ReadCombinations()
+        public void ReadCombinations(IExeState exeState)
         {
-            return repositoryImpl.ReadCombinations();
+            repositoryImpl.ReadCombinations(exeState);
         }
     }
 }

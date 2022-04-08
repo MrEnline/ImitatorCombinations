@@ -9,7 +9,6 @@ using ImitComb.data;
 using ImitComb.domain.Entity;
 using ImitComb.presentation;
 using System.Windows.Media;
-using System.Text.RegularExpressions;
 
 namespace ImitComb
 {
@@ -17,6 +16,15 @@ namespace ImitComb
     {
         private const string DONE_AUTO_CHECK = "Операция выполнена";
         private const string ABORT_AUTO_CHECK = "Операция прервана";
+
+        private const string ALARM = "alarm";
+        private const string CUT_OFF = "cutoff";
+        private const string BLOCK_WAY = "blockway";
+        private const string WAY_TO_RP_NPS_LAST = "waytorpnpslast";
+        private const string LOOPING = "looping";
+
+        private const string XLSX = ".xlsx";
+
         private MainWindow mainWindow;
         private Dictionary<string, List<string>> dictCombs;
         private ListBox listBoxCombs;
@@ -33,6 +41,8 @@ namespace ImitComb
         private Label labelStateAutoImitation;
         private Label labelCombAutoImitation;
         private Label labelZDVAutoImitation;
+        private Label labelCountCheckComb;
+        private Label labelEllapsedTime;
         private Button buttonAutoCheck;
         private Button buttonAutoCheckBlock;
         private Button buttonImitation;
@@ -63,7 +73,7 @@ namespace ImitComb
         private int countCombinations;
         private OPCState opcState;
         private OPCGroup opcGroupDataChange;
-        private bool stopAutoImitation;
+        private bool isStopAutoImitation;
 
         public ViewModel(MainWindow mainWindow)
         {
@@ -82,6 +92,8 @@ namespace ImitComb
             labelStateAutoImitation = mainWindow.labelStateAutoImitation;
             labelCombAutoImitation = mainWindow.labelCombAutoImitation;
             labelZDVAutoImitation = mainWindow.labelZDVAutoImitation;
+            labelCountCheckComb = mainWindow.labelCountCheckComb;
+            labelEllapsedTime = mainWindow.labelEllapsedTime;
             buttonAutoCheck = mainWindow.buttonAutoCheck;
             buttonImitation = mainWindow.buttonImitation;
             buttonOpen = mainWindow.buttonOpen;
@@ -114,20 +126,22 @@ namespace ImitComb
 
         private string ParsePathFile(string pathCombFile = "")
         {
-            if (!pathCombFile.Contains(".xlsx"))
-                return pathCombFile = pathCombFile + ".xlsx";
+            if (!pathCombFile.Contains(XLSX))
+                return pathCombFile + XLSX;
             return pathCombFile;
         }
 
         public void CheckExcel(string pathCombFile)
         {
-            if (checkExcel.CheckExcel(ParsePathFile(pathCombFile)))
+            bool isCheckExcel = checkExcel.CheckExcel(ParsePathFile(pathCombFile));
+            if (isCheckExcel)
             {
                 GetNameServer();
                 GetNameArea();
                 SubScribeTags();
                 if (opcState != null)
                     SetParamOPCDataChange();
+                readCombinations.ReadCombinations(this);
             }
             else
             {
@@ -161,26 +175,31 @@ namespace ImitComb
             textBoxArea.Text = getNameArea.GetNameArea(nameArea);
         }
 
-        public void ReadCombinations()
+        //public void ReadCombinations()
+        //{
+        //    //dictCombs = readCombinations.ReadCombinations();
+        //    //CreateListBoxItems();
+        //    readCombinations.ReadCombinations(this);
+        //}
+
+        public void CreateListBoxItems(Dictionary<string, List<string>> dictCombs)
         {
-            dictCombs = readCombinations.ReadCombinations();
+            this.dictCombs = dictCombs;
             if (dictCombs != null)
             {
-                CreateListBoxItems();
-                countCombinations = dictCombs.Keys.Count;
+                mainWindow.Dispatcher.Invoke(() =>
+                {
+                    listBoxCombs.ItemsSource = null;
+                    BlockElementsForm();
+                    listBoxCombs.ItemsSource = dictCombs.Keys;
+                    labelCombs.Content = "Кол-во комбинаций: " + dictCombs.Keys.Count;
+                    UnBlockElementsForm();
+                });
             }
-            else
-            {
-                MessageBox.Show("Скорее всего введенные данные не верны");
-            }
-            labelCombs.Content = "Кол-во комбинаций: " + countCombinations;
-        }
 
-        private void CreateListBoxItems()
-        {
-            listBoxCombs.Items.Clear();
-            foreach (var key in dictCombs.Keys)
-                listBoxCombs.Items.Add(key);
+            //listBoxCombs.Items.Clear();
+            //foreach (var key in dictCombs.Keys)
+            //    listBoxCombs.Items.Add(key);
         }
 
         public void CreateListBoxZDVs(string keyCombination)
@@ -302,33 +321,34 @@ namespace ImitComb
         private Rectangle GetBlinker(string tag)
 		{
             Rectangle blinker = null;
-            if (tag.ToLower().Contains("alarm"))
+            if (tag.ToLower().Contains(ALARM))
                 blinker = blinkerAlarm;
-            if (tag.ToLower().Contains("cutoff"))
+            if (tag.ToLower().Contains(CUT_OFF))
                 blinker = blinkerCutOff;
-            if (tag.ToLower().Contains("blockway"))
+            if (tag.ToLower().Contains(BLOCK_WAY))
                 blinker = blinkerBlockWay;
-            if (tag.ToLower().Contains("waytorpnpslast"))
+            if (tag.ToLower().Contains(WAY_TO_RP_NPS_LAST))
                 blinker = blinkerFlowPath;
-            if (tag.ToLower().Contains("looping"))
+            if (tag.ToLower().Contains(LOOPING))
                 blinker = blinkerLooping;
             return blinker;
         }
 
-        public void GetStateExecute(string state, string nameTU, string combination = null, bool stopAutoImitation = false)
+        public void GetStateExecute(StatusOperation status)
         {
-            this.stopAutoImitation = stopAutoImitation;
+            isStopAutoImitation = status.IsStopAutoImitation;
 
             //if (!WorkWithButtons(nameTU)) return;
-            //TODO Добавить счетчик проверенных комбинаций
             mainWindow.Dispatcher.Invoke(() =>
             {
-                buttonAutoCheck.Content = stopAutoImitation ? "Автопроверка " + nameTU : "     Остановить\nавтопроверку " + nameTU;
-                labelStateAutoImitation.Content = state;
-                labelCombAutoImitation.Content = String.IsNullOrEmpty(combination) ? combination : combination.Split('%')[0];
-                labelZDVAutoImitation.Content = String.IsNullOrEmpty(combination) ? combination : combination.Split('%')[1];
+                buttonAutoCheck.Content = isStopAutoImitation ? $"Автопроверка {status.NameTU}" : $"     Остановить\nавтопроверку {status.NameTU}";
+                labelStateAutoImitation.Content = status.State;
+                labelCombAutoImitation.Content = String.IsNullOrEmpty(status.Combination) ? status.Combination : status.Combination.Split('%')[0];
+                labelZDVAutoImitation.Content = String.IsNullOrEmpty(status.Combination) ? status.Combination : status.Combination.Split('%')[1];
+                labelCountCheckComb.Content = $"Количество проверенных комбинаций: {status.CountCombinations}";
+                labelEllapsedTime.Content = $"Затраченное время: {status.EllapsedTime}";
 
-                if (state == DONE_AUTO_CHECK || state == ABORT_AUTO_CHECK)
+                if (status.State == DONE_AUTO_CHECK || status.State == ABORT_AUTO_CHECK)
                     UnBlockElementsForm();
                 else
                     BlockElementsForm();

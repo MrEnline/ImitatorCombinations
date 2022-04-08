@@ -6,7 +6,7 @@ namespace ImitComb.domain
 {
     interface IOperations
     {
-        Dictionary<string, List<string>> ReadCombinations();
+        void ReadCombinations(IExeState exeState);
         bool CheckExcel(string pathCombFile);
         string GetNameServer(string nameServer);
         string GetNameArea(string nameArea);
