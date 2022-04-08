@@ -399,9 +399,9 @@ namespace ImitComb.data
             switch (data)
             {
                 case "dictionary":
-                        return dictTags[(currListTags[i - 1]).ToLower()] + STATUS;
+                        return dictTags[(currListTags[i - 1]).ToLower()] + STATUS;  //тэги задвижек
                 case "list":
-                        return currListTags[i - 1];
+                        return currListTags[i - 1];                                 //тэги сигналов для подписки
                 default:
                         return "";
             }
